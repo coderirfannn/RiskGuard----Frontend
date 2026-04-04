@@ -31,6 +31,37 @@ function projectRiskCount(project) {
     return 0;
 }
 
+function hasEmbeddedRiskCount(project) {
+    return Object.prototype.hasOwnProperty.call(project || {}, 'riskCount')
+        || Object.prototype.hasOwnProperty.call(project || {}, 'risksCount')
+        || Object.prototype.hasOwnProperty.call(project?.stats || {}, 'riskCount')
+        || Object.prototype.hasOwnProperty.call(project?.stats || {}, 'risks')
+        || Array.isArray(project?.risks);
+}
+
+async function hydrateProjectRiskCounts(projects) {
+    const safeProjects = Array.isArray(projects) ? projects : [];
+
+    return Promise.all(safeProjects.map(async (project) => {
+        let count = projectRiskCount(project);
+        const projectId = project?._id || project?.id;
+
+        if (!hasEmbeddedRiskCount(project) && projectId) {
+            try {
+                const risks = await fetchAPI(`/projects/${projectId}/risks`);
+                count = Array.isArray(risks) ? risks.length : 0;
+            } catch (err) {
+                count = 0;
+            }
+        }
+
+        return {
+            ...project,
+            _computedRiskCount: count
+        };
+    }));
+}
+
 function projectTitle(project) {
     return project?.title || project?.name || 'Untitled Project';
 }
@@ -253,10 +284,11 @@ async function loadProjectDashboard() {
     loader.style.display = 'block';
 
     try {
-        const projects = await fetchAPI('/projects');
+        const projectsRaw = await fetchAPI('/projects');
+        const projects = await hydrateProjectRiskCounts(projectsRaw);
         const totalProjects = Array.isArray(projects) ? projects.length : 0;
         const totalRisks = Array.isArray(projects)
-            ? projects.reduce((sum, project) => sum + projectRiskCount(project), 0)
+            ? projects.reduce((sum, project) => sum + (project._computedRiskCount || 0), 0)
             : 0;
 
         document.getElementById('statProjects').textContent = totalProjects;
@@ -280,7 +312,7 @@ async function loadProjectDashboard() {
             }
         } else {
             projectsList.innerHTML = projects.map(project => {
-                const riskCount = projectRiskCount(project);
+                const riskCount = project._computedRiskCount || 0;
                 const projectId = encodeURIComponent(project?._id || project?.id || '');
                 const rawProjectId = escapeHTML(String(project?._id || project?.id || ''));
                 const title = projectTitle(project);
