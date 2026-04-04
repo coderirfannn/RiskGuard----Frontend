@@ -22,12 +22,22 @@
             <div class="card" style="max-width: 800px;">
                 <form id="createProjectForm">
                     <div class="form-group">
-                        <label for="projectName">Project Name</label>
-                        <input type="text" id="projectName" class="form-control" autocomplete="organization" required />
+                        <label for="projectTitle">Title</label>
+                        <input type="text" id="projectTitle" class="form-control" autocomplete="organization" required />
                     </div>
                     <div class="form-group">
                         <label for="projectDescription">Description</label>
                         <textarea id="projectDescription" class="form-control" rows="5"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectStartDate">Start Date</label>
+                            <input type="date" id="projectStartDate" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="projectEndDate">End Date</label>
+                            <input type="date" id="projectEndDate" class="form-control" required />
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary" id="saveProjectBtn">Create Project</button>
                     <div id="createProjectMessage" class="status-message" role="alert" aria-live="polite"></div>

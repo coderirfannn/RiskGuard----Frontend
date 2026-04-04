@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
     loadSidebar();
+    initDashboardProjectModal();
     loadProjectDashboard();
 });
 
@@ -13,12 +14,8 @@ function escapeHTML(value) {
         .replace(/'/g, '&#39;');
 }
 
-function impactBadgeClass(impact) {
-    const normalized = String(impact || '').toLowerCase();
-    if (normalized === 'low' || normalized === 'medium' || normalized === 'high' || normalized === 'critical') {
-        return `badge-${normalized}`;
-    }
-    return 'badge-medium';
+function sanitizeText(value) {
+    return String(value || '').trim();
 }
 
 function projectRiskCount(project) {
@@ -32,6 +29,91 @@ function projectRiskCount(project) {
     }
 
     return 0;
+}
+
+function projectTitle(project) {
+    return project?.title || project?.name || 'Untitled Project';
+}
+
+function setDashboardMessage(message, type) {
+    const messageEl = document.getElementById('modalProjectMessage');
+    if (!messageEl) return;
+    if (!message) {
+        messageEl.className = 'status-message';
+        messageEl.textContent = '';
+        return;
+    }
+    messageEl.className = `status-message ${type}`;
+    messageEl.textContent = message;
+}
+
+function initDashboardProjectModal() {
+    const modal = document.getElementById('createProjectModal');
+    const backdrop = document.getElementById('createProjectBackdrop');
+    const openBtn = document.getElementById('openCreateProjectModalBtn');
+    const closeBtn = document.getElementById('closeCreateProjectModalBtn');
+    const cancelBtn = document.getElementById('modalProjectCancelBtn');
+    const form = document.getElementById('dashboardCreateProjectForm');
+    const saveBtn = document.getElementById('modalProjectSaveBtn');
+
+    if (!modal || !backdrop || !openBtn || !form) return;
+
+    const openModal = () => {
+        setDashboardMessage('', '');
+        form.reset();
+        modal.hidden = false;
+        backdrop.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeModal = () => {
+        modal.hidden = true;
+        backdrop.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+    };
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const title = sanitizeText(document.getElementById('modalProjectTitle').value);
+        const description = sanitizeText(document.getElementById('modalProjectDescription').value);
+        const startDate = document.getElementById('modalProjectStartDate').value;
+        const endDate = document.getElementById('modalProjectEndDate').value;
+
+        if (!title || !startDate || !endDate) {
+            setDashboardMessage('Title, start date, and end date are required.', 'error');
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            setDashboardMessage('Start date cannot be after end date.', 'error');
+            return;
+        }
+
+        const previousText = saveBtn.textContent;
+        saveBtn.textContent = 'Creating...';
+        saveBtn.disabled = true;
+
+        try {
+            await fetchAPI('/projects', {
+                method: 'POST',
+                body: JSON.stringify({ title, description, startDate, endDate })
+            });
+            setDashboardMessage('Project created successfully.', 'success');
+            await loadProjectDashboard();
+            closeModal();
+        } catch (err) {
+            setDashboardMessage(err.message || 'Failed to create project.', 'error');
+        } finally {
+            saveBtn.textContent = previousText;
+            saveBtn.disabled = false;
+        }
+    });
 }
 
 async function loadProjectDashboard() {
@@ -57,24 +139,32 @@ async function loadProjectDashboard() {
                 <div class="empty-state">
                     <h3>No projects yet</h3>
                     <p>Create your first project before adding any risks.</p>
-                    <a href="create-project.html" class="btn btn-primary" style="width:auto;">Create Project</a>
+                    <button type="button" class="btn btn-primary" id="emptyStateCreateProjectBtn" style="width:auto;">Create Project</button>
                 </div>
             `;
+            const emptyStateCreateBtn = document.getElementById('emptyStateCreateProjectBtn');
+            if (emptyStateCreateBtn) {
+                emptyStateCreateBtn.addEventListener('click', () => {
+                    const openBtn = document.getElementById('openCreateProjectModalBtn');
+                    if (openBtn) openBtn.click();
+                });
+            }
         } else {
             projectsList.innerHTML = projects.map(project => {
                 const riskCount = projectRiskCount(project);
+                const projectId = encodeURIComponent(project?._id || project?.id || '');
                 return `
                     <div class="card project-card">
                         <div class="project-card__header">
                             <div class="project-card__meta">
-                                <h3 style="margin:0 0 8px 0;"><a href="project-detail.html?id=${encodeURIComponent(project._id)}">${escapeHTML(project.name || project.title || 'Untitled Project')}</a></h3>
+                                <h3 style="margin:0 0 8px 0;"><a href="project-detail.html?id=${projectId}">${escapeHTML(projectTitle(project))}</a></h3>
                                 <p style="margin:0; color:var(--text-muted);">${escapeHTML(project.description || 'No description provided.')}</p>
                             </div>
                             <span class="badge badge-medium">${riskCount} risk${riskCount === 1 ? '' : 's'}</span>
                         </div>
                         <div class="project-card__footer">
                             <span style="color:var(--text-muted); font-size:14px;">Created ${escapeHTML(project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'recently')}</span>
-                            <a href="project-detail.html?id=${encodeURIComponent(project._id)}" class="btn btn-primary" style="width:auto;">Open Project</a>
+                            <a href="project-detail.html?id=${projectId}" class="btn btn-primary" style="width:auto;">Open Project</a>
                         </div>
                     </div>
                 `;

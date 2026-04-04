@@ -1,8 +1,30 @@
+// Replace BASE_URL with your backend host if needed (keep trailing /api).
 const API_BASE = 'https://riskguard-backend-4eh1.onrender.com/api';
 const API_TIMEOUT_MS = 15000;
+const TOKEN_KEY = 'token';
+
+function getAuthToken() {
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+}
+
+function setAuthToken(token, persistent = false) {
+    if (persistent) {
+        localStorage.setItem(TOKEN_KEY, token);
+        sessionStorage.removeItem(TOKEN_KEY);
+        return;
+    }
+
+    sessionStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(TOKEN_KEY);
+}
+
+function clearAuthToken() {
+    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+}
 
 async function fetchAPI(endpoint, options = {}) {
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
@@ -29,7 +51,7 @@ async function fetchAPI(endpoint, options = {}) {
         }
 
         if (response.status === 401 || response.status === 403) {
-            localStorage.removeItem('token');
+            clearAuthToken();
             if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('register.html')) {
                 window.location.href = window.location.pathname.includes('/pages/') ? 'login.html' : 'pages/login.html';
             }

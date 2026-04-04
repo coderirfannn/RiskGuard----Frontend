@@ -42,6 +42,8 @@ function setStatusMessage(targetId, message, type) {
 }
 
 async function renderRiskHistory(riskId, loader, timeline) {
+    loader.style.display = 'block';
+    timeline.style.display = 'none';
     try {
         const historyData = await fetchAPI(`/risks/${riskId}/history`);
         if (!Array.isArray(historyData) || historyData.length === 0) {
@@ -66,31 +68,10 @@ async function renderRiskHistory(riskId, loader, timeline) {
 }
 
 async function updateRiskStatus(id, status) {
-    try {
-        return await fetchAPI(`/risks/${id}/status`, {
-            method: 'PATCH',
-            body: JSON.stringify({ status })
-        });
-    } catch (err) {
-        if (!/not found/i.test(String(err.message || ''))) {
-            throw err;
-        }
-    }
-
-    try {
-        return await fetchAPI(`/risks/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ status })
-        });
-    } catch (err) {
-        if (!/not found/i.test(String(err.message || ''))) {
-            throw err;
-        }
-    }
-
-    return fetchAPI(`/risks/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ status })
+    const note = sanitizeText(document.getElementById('modalStatusNote')?.value || '');
+    return fetchAPI(`/risks/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, note })
     });
 }
 
@@ -139,6 +120,7 @@ function initCreateForm() {
             description: sanitizeText(document.getElementById('description').value),
             probability: document.getElementById('probability').value,
             impact: document.getElementById('impact').value,
+            mitigationActions: sanitizeText(document.getElementById('mitigationPlan').value),
             mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value)
         };
 
@@ -176,12 +158,14 @@ async function initViewRisk() {
     const statusModal = document.getElementById('statusModal');
     const statusModalBackdrop = document.getElementById('statusModalBackdrop');
     const modalStatusSelect = document.getElementById('modalStatusSelect');
+    const modalStatusNote = document.getElementById('modalStatusNote');
     const confirmStatusBtn = document.getElementById('confirmStatusBtn');
     const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
     const cancelStatusModalBtn = document.getElementById('cancelStatusModalBtn');
 
     function openStatusModal(initialStatus) {
         modalStatusSelect.value = initialStatus;
+        modalStatusNote.value = '';
         statusModal.hidden = false;
         statusModalBackdrop.hidden = false;
         statusModal.setAttribute('aria-hidden', 'false');
@@ -202,7 +186,7 @@ async function initViewRisk() {
         document.getElementById('riskTitle').textContent = risk.title;
         document.getElementById('riskId').textContent = `ID: ${risk._id}`;
         document.getElementById('riskDesc').textContent = risk.description || 'No description provided.';
-        document.getElementById('riskMitigation').textContent = risk.mitigationPlan;
+        document.getElementById('riskMitigation').textContent = risk.mitigationActions || risk.mitigationPlan || 'No mitigation actions provided.';
 
         if (projectId) {
             try {
@@ -310,7 +294,7 @@ async function initUpdateForm() {
         document.getElementById('description').value = risk.description || '';
         document.getElementById('probability').value = risk.probability;
         document.getElementById('impact').value = risk.impact;
-        document.getElementById('mitigationPlan').value = risk.mitigationPlan;
+        document.getElementById('mitigationPlan').value = risk.mitigationActions || risk.mitigationPlan || '';
         
         loader.style.display = 'none';
         form.style.display = 'block';
@@ -331,6 +315,7 @@ async function initUpdateForm() {
             description: sanitizeText(document.getElementById('description').value),
             probability: document.getElementById('probability').value,
             impact: document.getElementById('impact').value,
+            mitigationActions: sanitizeText(document.getElementById('mitigationPlan').value),
             mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value)
         };
 
@@ -401,7 +386,7 @@ async function loadAllRisks() {
                         <span class="badge ${impactBadgeClass(risk.impact)}">${escapeHTML(risk.impact)}</span>
                     </div>
                     <p class="line-clamp-2" style="margin:10px 0; font-size:14px; color:var(--text-color); opacity:0.8;">
-                        ${escapeHTML(risk.mitigationPlan)}
+                        ${escapeHTML(risk.mitigationActions || risk.mitigationPlan || '')}
                     </p>
                     ${projectIdFromRisk(risk) ? `<p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted);">Project: <a href="project-detail.html?id=${encodeURIComponent(projectIdFromRisk(risk))}">${escapeHTML(projectNameFromRisk(risk))}</a></p>` : `<p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted);">Project: ${escapeHTML(projectNameFromRisk(risk))}</p>`}
                     <div style="font-size:12px; color:var(--text-color); opacity:0.6; margin-top:15px;">

@@ -2,20 +2,32 @@ function pagePath(fileName) {
     return window.location.pathname.includes('/pages/') ? fileName : `pages/${fileName}`;
 }
 
+function hasToken() {
+    if (typeof getAuthToken === 'function') {
+        return !!getAuthToken();
+    }
+    return !!(sessionStorage.getItem('token') || localStorage.getItem('token'));
+}
+
 function requireAuth() {
-    if (!localStorage.getItem('token')) {
+    if (!hasToken()) {
         window.location.href = pagePath('login.html');
     }
 }
 
 function requireGuest() {
-    if (localStorage.getItem('token')) {
+    if (hasToken()) {
         window.location.href = pagePath('dashboard.html');
     }
 }
 
 function logout() {
-    localStorage.removeItem('token');
+    if (typeof clearAuthToken === 'function') {
+        clearAuthToken();
+    } else {
+        sessionStorage.removeItem('token');
+        localStorage.removeItem('token');
+    }
     window.location.href = pagePath('login.html');
 }
 

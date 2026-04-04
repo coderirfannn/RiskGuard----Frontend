@@ -24,7 +24,7 @@ function setStatusMessage(targetId, message, type) {
 }
 
 function projectTitle(project) {
-    return project?.name || project?.title || 'Untitled Project';
+    return project?.title || project?.name || 'Untitled Project';
 }
 
 function projectRiskCount(project) {
@@ -49,7 +49,7 @@ function impactBadgeClass(impact) {
 }
 
 function renderProjectRisk(risk, projectId) {
-    const riskId = encodeURIComponent(risk._id);
+    const riskId = encodeURIComponent(risk?._id || risk?.id || '');
     const riskProjectId = encodeURIComponent(projectId);
 
     return `
@@ -62,7 +62,7 @@ function renderProjectRisk(risk, projectId) {
                 <span class="badge ${impactBadgeClass(risk.impact)}">${escapeHTML(risk.impact || 'Medium')}</span>
             </div>
             <p class="line-clamp-2" style="margin:0; font-size:14px; color:var(--text-color); opacity:0.8;">
-                ${escapeHTML(risk.mitigationPlan || 'No mitigation actions provided.')}
+                ${escapeHTML(risk.mitigationActions || risk.mitigationPlan || 'No mitigation actions provided.')}
             </p>
             <div class="project-card__footer">
                 <span style="color:var(--text-muted); font-size:14px;">Status: <strong>${escapeHTML(risk.status || 'Identified')}</strong></span>
@@ -81,14 +81,21 @@ async function initCreateProjectForm() {
         const saveBtn = document.getElementById('saveProjectBtn');
         const previousText = saveBtn.textContent;
         const payload = {
-            name: sanitizeText(document.getElementById('projectName').value),
-            description: sanitizeText(document.getElementById('projectDescription').value)
+            title: sanitizeText(document.getElementById('projectTitle').value),
+            description: sanitizeText(document.getElementById('projectDescription').value),
+            startDate: document.getElementById('projectStartDate').value,
+            endDate: document.getElementById('projectEndDate').value
         };
 
         setStatusMessage('createProjectMessage', '', '');
 
-        if (!payload.name) {
-            setStatusMessage('createProjectMessage', 'Project name is required.', 'error');
+        if (!payload.title || !payload.startDate || !payload.endDate) {
+            setStatusMessage('createProjectMessage', 'Title, start date, and end date are required.', 'error');
+            return;
+        }
+
+        if (new Date(payload.startDate) > new Date(payload.endDate)) {
+            setStatusMessage('createProjectMessage', 'Start date cannot be after end date.', 'error');
             return;
         }
 
@@ -110,37 +117,64 @@ async function initCreateProjectForm() {
     });
 }
 
+function renderProjectMeta(project, totalRisks) {
+    document.getElementById('projectTitle').textContent = projectTitle(project);
+    document.getElementById('projectDescription').textContent = project?.description || 'No project description provided.';
+    document.getElementById('breadcrumbProjectName').textContent = projectTitle(project);
+    document.getElementById('projectStartDate').textContent = project?.startDate ? new Date(project.startDate).toLocaleDateString() : '-';
+    document.getElementById('projectEndDate').textContent = project?.endDate ? new Date(project.endDate).toLocaleDateString() : '-';
+    document.getElementById('projectRiskCount').textContent = String(totalRisks);
+}
+
+async function loadProjectRisks(projectId) {
+    const riskGrid = document.getElementById('project-risks-grid');
+    const emptyState = document.getElementById('project-empty-state');
+    const risks = await fetchAPI(`/projects/${projectId}/risks`);
+    const totalRisks = Array.isArray(risks) ? risks.length : 0;
+
+    if (!totalRisks) {
+        emptyState.style.display = 'block';
+        riskGrid.innerHTML = '';
+    } else {
+        emptyState.style.display = 'none';
+        riskGrid.innerHTML = risks.map((risk) => renderProjectRisk(risk, projectId)).join('');
+    }
+
+    document.getElementById('projectRiskCount').textContent = String(totalRisks);
+    return totalRisks;
+}
+
 async function initProjectDetail() {
     const projectId = getUrlParam('id');
     if (!projectId) return window.location.href = 'dashboard.html';
 
     const loader = document.getElementById('loader');
-    const projectNameEl = document.getElementById('projectTitle');
-    const projectDescriptionEl = document.getElementById('projectDescription');
-    const riskGrid = document.getElementById('project-risks-grid');
-    const emptyState = document.getElementById('project-empty-state');
     const createRiskBtn = document.getElementById('createRiskBtn');
+    const createRiskBackdrop = document.getElementById('createRiskBackdrop');
+    const createRiskModal = document.getElementById('createRiskModal');
+    const closeCreateRiskModalBtn = document.getElementById('closeCreateRiskModalBtn');
+    const cancelCreateRiskModalBtn = document.getElementById('cancelCreateRiskModalBtn');
+    const createRiskModalForm = document.getElementById('createRiskModalForm');
+    const saveRiskModalBtn = document.getElementById('saveRiskModalBtn');
+
+    const openRiskModal = () => {
+        setStatusMessage('createRiskModalMessage', '', '');
+        createRiskModalForm.reset();
+        createRiskModal.hidden = false;
+        createRiskBackdrop.hidden = false;
+        createRiskModal.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeRiskModal = () => {
+        createRiskModal.hidden = true;
+        createRiskBackdrop.hidden = true;
+        createRiskModal.setAttribute('aria-hidden', 'true');
+    };
 
     try {
         const project = await fetchAPI(`/projects/${projectId}`);
-        const risks = await fetchAPI(`/projects/${projectId}/risks`);
-        const totalRisks = Array.isArray(risks) ? risks.length : 0;
-
-        projectNameEl.textContent = projectTitle(project);
-        projectDescriptionEl.textContent = project?.description || 'No project description provided.';
-        document.getElementById('breadcrumbProjectName').textContent = projectTitle(project);
-        document.getElementById('projectCreated').textContent = project?.createdAt ? new Date(project.createdAt).toLocaleDateString() : '-';
-        document.getElementById('projectRiskCount').textContent = String(totalRisks);
-        document.getElementById('projectOwner').textContent = project?.createdBy?.name || project?.owner?.name || 'Unknown';
-        createRiskBtn.href = `create-risk.html?projectId=${encodeURIComponent(projectId)}`;
-
-        if (!totalRisks) {
-            emptyState.style.display = 'block';
-            riskGrid.innerHTML = '';
-        } else {
-            emptyState.style.display = 'none';
-            riskGrid.innerHTML = risks.map((risk) => renderProjectRisk(risk, projectId)).join('');
-        }
+        const totalRisks = await loadProjectRisks(projectId);
+        renderProjectMeta(project, totalRisks);
 
         loader.style.display = 'none';
         document.getElementById('projectSummary').style.display = 'grid';
@@ -148,4 +182,46 @@ async function initProjectDetail() {
     } catch (err) {
         loader.textContent = err.message || 'Failed to load project.';
     }
+
+    createRiskBtn.addEventListener('click', openRiskModal);
+    closeCreateRiskModalBtn.addEventListener('click', closeRiskModal);
+    cancelCreateRiskModalBtn.addEventListener('click', closeRiskModal);
+    createRiskBackdrop.addEventListener('click', closeRiskModal);
+
+    createRiskModalForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const payload = {
+            title: sanitizeText(document.getElementById('riskTitle').value),
+            description: sanitizeText(document.getElementById('riskDescription').value),
+            probability: document.getElementById('riskProbability').value,
+            impact: document.getElementById('riskImpact').value,
+            mitigationActions: sanitizeText(document.getElementById('riskMitigationActions').value),
+            mitigationPlan: sanitizeText(document.getElementById('riskMitigationActions').value)
+        };
+
+        if (!payload.title || !payload.mitigationActions) {
+            setStatusMessage('createRiskModalMessage', 'Title and mitigation actions are required.', 'error');
+            return;
+        }
+
+        const previousText = saveRiskModalBtn.textContent;
+        saveRiskModalBtn.textContent = 'Creating...';
+        saveRiskModalBtn.disabled = true;
+
+        try {
+            await fetchAPI(`/projects/${projectId}/risks`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            await loadProjectRisks(projectId);
+            closeRiskModal();
+        } catch (err) {
+            setStatusMessage('createRiskModalMessage', err.message || 'Failed to create risk.', 'error');
+        } finally {
+            saveRiskModalBtn.textContent = previousText;
+            saveRiskModalBtn.disabled = false;
+        }
+    });
 }

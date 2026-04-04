@@ -7,7 +7,8 @@
 </head>
 <body>
     <script>
-        if (localStorage.getItem('token')) {
+        const hasToken = !!(sessionStorage.getItem('token') || localStorage.getItem('token'));
+        if (hasToken) {
             window.location.href = 'pages/dashboard.html';
         } else {
             window.location.href = 'pages/login.html';

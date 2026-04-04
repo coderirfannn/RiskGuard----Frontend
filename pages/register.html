@@ -58,7 +58,11 @@
                         password
                     })
                 });
-                localStorage.setItem('token', data.token);
+                if (typeof setAuthToken === 'function') {
+                    setAuthToken(data.token, false);
+                } else {
+                    sessionStorage.setItem('token', data.token);
+                }
                 window.location.href = 'dashboard.html';
             } catch (err) {
                 messageEl.className = 'status-message error';
