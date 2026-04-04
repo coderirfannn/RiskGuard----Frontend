@@ -17,15 +17,16 @@
                     <h1 id="riskTitle" style="margin-bottom: 5px;">Loading...</h1>
                     <span id="riskId" style="color:var(--text-color); opacity: 0.6; font-size:14px;"></span>
                 </div>
-                <div style="display:flex; gap:10px;">
+                <div class="card-inline-actions" style="margin-top: 0; gap:10px;">
                     <a id="historyBtn" href="#" class="btn" style="background:#e2e8f0; color:#0f172a; width:auto;">View History</a>
                     <a id="editBtn" href="#" class="btn btn-primary" style="width: auto">Edit Risk</a>
                 </div>
             </div>
             
-            <div id="loader">Loading Details...</div>
+            <div id="loader" role="status" aria-live="polite">Loading Details...</div>
+            <div id="viewRiskMessage" class="status-message" role="alert" aria-live="polite"></div>
             
-            <div class="grid" id="detailsWrapper" style="display:none; grid-template-columns: 2fr 1fr;">
+            <div class="grid risk-details-grid" id="detailsWrapper" style="display:none;">
                 <div>
                     <div class="card">
                         <h3>Description</h3>

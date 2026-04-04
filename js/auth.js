@@ -1,31 +1,43 @@
+function pagePath(fileName) {
+    return window.location.pathname.includes('/pages/') ? fileName : `pages/${fileName}`;
+}
+
 function requireAuth() {
     if (!localStorage.getItem('token')) {
-        window.location.href = '/pages/login.html';
+        window.location.href = pagePath('login.html');
     }
 }
 
 function requireGuest() {
     if (localStorage.getItem('token')) {
-        window.location.href = '/pages/dashboard.html';
+        window.location.href = pagePath('dashboard.html');
     }
 }
 
 function logout() {
     localStorage.removeItem('token');
-    window.location.href = '/pages/login.html';
+    window.location.href = pagePath('login.html');
 }
 
 function loadSidebar() {
-    document.getElementById('sidebar-container').innerHTML = `
+    const sidebarContainer = document.getElementById('sidebar-container');
+    if (!sidebarContainer) return;
+
+    sidebarContainer.innerHTML = `
         <div class="sidebar">
             <h2>RiskGuard</h2>
             <ul>
-                <li><a href="/pages/dashboard.html">Dashboard</a></li>
-                <li><a href="/pages/risks.html">All Risks</a></li>
-                <li><a href="/pages/create-risk.html">Report Risk</a></li>
-                <li><a href="/pages/profile.html">Profile</a></li>
-                <li><a href="#" onclick="logout()">Logout</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="risks.html">All Risks</a></li>
+                <li><a href="create-risk.html">Report Risk</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><button class="logout-link" id="logoutBtn" type="button">Logout</button></li>
             </ul>
         </div>
     `;
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
 }

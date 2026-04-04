@@ -19,24 +19,24 @@
             <div class="card" style="max-width: 800px;">
                 <form id="createRiskForm">
                     <div class="form-group">
-                        <label>Risk Title</label>
+                        <label for="title">Risk Title</label>
                         <input type="text" id="title" class="form-control" required />
                     </div>
                     <div class="form-group">
-                        <label>Description</label>
+                        <label for="description">Description</label>
                         <textarea id="description" class="form-control" rows="4"></textarea>
                     </div>
-                    <div style="display:flex; gap: 20px;">
-                        <div class="form-group" style="flex:1;">
-                            <label>Probability</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="probability">Probability</label>
                             <select id="probability" class="form-control" required>
                                 <option value="Low">Low</option>
                                 <option value="Medium">Medium</option>
                                 <option value="High">High</option>
                             </select>
                         </div>
-                        <div class="form-group" style="flex:1;">
-                            <label>Impact</label>
+                        <div class="form-group">
+                            <label for="impact">Impact</label>
                             <select id="impact" class="form-control" required>
                                 <option value="Low">Low</option>
                                 <option value="Medium">Medium</option>
@@ -46,10 +46,11 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Mitigation Plan</label>
+                        <label for="mitigationPlan">Mitigation Plan</label>
                         <textarea id="mitigationPlan" class="form-control" rows="4" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary" id="saveBtn">Save Risk</button>
+                    <div id="createFormMessage" class="status-message" role="alert" aria-live="polite"></div>
                 </form>
             </div>
         </div>

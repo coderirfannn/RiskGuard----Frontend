@@ -2,12 +2,15 @@
 :root {
   --bg-color: #f8fafc;
   --text-color: #0f172a;
+  --text-muted: #475569;
   --primary-color: #3b82f6;
   --primary-hover: #2563eb;
   --white: #ffffff;
   --border-color: #e2e8f0;
   --danger: #ef4444;
+  --danger-bg: #fef2f2;
   --success: #10b981;
+  --success-bg: #ecfdf5;
   --warning: #f59e0b;
 }
 
@@ -17,6 +20,7 @@ body {
   color: var(--text-color);
   margin: 0;
   padding: 0;
+  line-height: 1.5;
 }
 
 * { box-sizing: border-box; }

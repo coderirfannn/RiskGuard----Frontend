@@ -5,6 +5,34 @@ function getUrlParam(param) {
     return params.get(param);
 }
 
+function escapeHTML(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function sanitizeText(value) {
+    return String(value || '').trim();
+}
+
+function impactBadgeClass(impact) {
+    const normalized = String(impact || '').toLowerCase();
+    if (normalized === 'low' || normalized === 'medium' || normalized === 'high' || normalized === 'critical') {
+        return `badge-${normalized}`;
+    }
+    return 'badge-medium';
+}
+
+function setStatusMessage(targetId, message, type) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    target.className = `status-message ${type}`;
+    target.textContent = message;
+}
+
 // 1. Create Risk
 function initCreateForm() {
     const form = document.getElementById('createRiskForm');
@@ -17,17 +45,25 @@ function initCreateForm() {
         btn.disabled = true;
 
         const payload = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
+            title: sanitizeText(document.getElementById('title').value),
+            description: sanitizeText(document.getElementById('description').value),
             probability: document.getElementById('probability').value,
             impact: document.getElementById('impact').value,
-            mitigationPlan: document.getElementById('mitigationPlan').value
+            mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value)
         };
+
+        if (!payload.title || !payload.mitigationPlan) {
+            setStatusMessage('createFormMessage', 'Title and mitigation plan are required.', 'error');
+            btn.textContent = 'Save Risk';
+            btn.disabled = false;
+            return;
+        }
 
         try {
             await fetchAPI('/risks', { method: 'POST', body: JSON.stringify(payload) });
             window.location.href = 'dashboard.html';
         } catch (err) {
+            setStatusMessage('createFormMessage', err.message || 'Failed to create risk.', 'error');
             btn.textContent = 'Save Risk';
             btn.disabled = false;
         }
@@ -74,14 +110,26 @@ async function initViewRisk() {
 
     // Status Update Binding
     document.getElementById('updateStatusBtn').addEventListener('click', async () => {
+        const updateBtn = document.getElementById('updateStatusBtn');
         const newStatus = document.getElementById('quickStatusUpdate').value;
+        const previousText = updateBtn.textContent;
+        updateBtn.textContent = 'Updating...';
+        updateBtn.disabled = true;
         try {
             await fetchAPI(`/risks/${id}/status`, {
                 method: 'PATCH',
                 body: JSON.stringify({ status: newStatus })
             });
-            window.location.reload();
-        } catch (err) {}
+            setStatusMessage('viewRiskMessage', 'Status updated successfully.', 'success');
+            const statusEl = document.getElementById('riskStatus');
+            statusEl.textContent = newStatus;
+            statusEl.className = `badge badge-${newStatus.toLowerCase() === 'resolved' ? 'success' : 'medium'}`;
+        } catch (err) {
+            setStatusMessage('viewRiskMessage', err.message || 'Failed to update status.', 'error');
+        } finally {
+            updateBtn.textContent = previousText;
+            updateBtn.disabled = false;
+        }
     });
 }
 
@@ -110,27 +158,51 @@ async function initUpdateForm() {
     // Handle Save
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const saveBtn = document.getElementById('saveBtn');
+        const previousText = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+
         const payload = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
+            title: sanitizeText(document.getElementById('title').value),
+            description: sanitizeText(document.getElementById('description').value),
             probability: document.getElementById('probability').value,
             impact: document.getElementById('impact').value,
-            mitigationPlan: document.getElementById('mitigationPlan').value
+            mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value)
         };
+
+        if (!payload.title || !payload.mitigationPlan) {
+            setStatusMessage('updateFormMessage', 'Title and mitigation plan are required.', 'error');
+            saveBtn.textContent = previousText;
+            saveBtn.disabled = false;
+            return;
+        }
 
         try {
             await fetchAPI(`/risks/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
             window.location.href = `view-risk.html?id=${id}`;
-        } catch (err) {}
+        } catch (err) {
+            setStatusMessage('updateFormMessage', err.message || 'Failed to update risk.', 'error');
+            saveBtn.textContent = previousText;
+            saveBtn.disabled = false;
+        }
     });
 
     // Handle Delete
     document.getElementById('delBtn').addEventListener('click', async () => {
+        const delBtn = document.getElementById('delBtn');
         if(confirm('Are you sure you want to permanently delete this risk?')) {
+            const previousText = delBtn.textContent;
+            delBtn.textContent = 'Deleting...';
+            delBtn.disabled = true;
             try {
                 await fetchAPI(`/risks/${id}`, { method: 'DELETE' });
                 window.location.href = 'risks.html';
-            } catch (err) {}
+            } catch (err) {
+                setStatusMessage('updateFormMessage', err.message || 'Failed to delete risk.', 'error');
+                delBtn.textContent = previousText;
+                delBtn.disabled = false;
+            }
         }
     });
 }
@@ -152,9 +224,9 @@ async function initHistory() {
         }
 
         timeline.innerHTML = historyData.map(log => `
-            <div class="timeline-item shadow-sm card" style="margin-bottom:15px; padding:15px;">
-                <span class="timeline-date">${new Date(log.changedAt).toLocaleString()}</span>
-                <strong>Status changed to: </strong> <span class="badge badge-medium">${log.status}</span>
+            <div class="timeline-item card" style="margin-bottom:15px; padding:15px;">
+                <span class="timeline-date">${escapeHTML(new Date(log.changedAt).toLocaleString())}</span>
+                <strong>Status changed to: </strong> <span class="badge badge-medium">${escapeHTML(log.status)}</span>
             </div>
         `).join('');
 
@@ -169,6 +241,7 @@ async function initHistory() {
 async function loadAllRisks() {
     const loader = document.getElementById('loader');
     const risksGrid = document.getElementById('all-risks-grid');
+    loader.style.display = 'block';
 
     try {
         const risks = await fetchAPI('/risks');
@@ -178,14 +251,14 @@ async function loadAllRisks() {
             risksGrid.innerHTML = risks.map(risk => `
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0"><a href="view-risk.html?id=${risk._id}">${risk.title}</a></h3>
-                        <span class="badge badge-${risk.impact.toLowerCase()}">${risk.impact}</span>
+                        <h3 style="margin:0"><a href="view-risk.html?id=${encodeURIComponent(risk._id)}">${escapeHTML(risk.title)}</a></h3>
+                        <span class="badge ${impactBadgeClass(risk.impact)}">${escapeHTML(risk.impact)}</span>
                     </div>
-                    <p style="margin:10px 0; font-size:14px; color:var(--text-color); opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        ${risk.mitigationPlan}
+                    <p class="line-clamp-2" style="margin:10px 0; font-size:14px; color:var(--text-color); opacity:0.8;">
+                        ${escapeHTML(risk.mitigationPlan)}
                     </p>
                     <div style="font-size:12px; color:var(--text-color); opacity:0.6; margin-top:15px;">
-                        Created: ${new Date(risk.createdAt).toLocaleDateString()}
+                        Created: ${escapeHTML(new Date(risk.createdAt).toLocaleDateString())}
                     </div>
                 </div>
             `).join('');
