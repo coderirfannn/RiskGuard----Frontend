@@ -36,8 +36,8 @@ function impactBadgeClass(impact) {
 
 function statusBadgeClass(status) {
     const normalized = String(status || '').toLowerCase();
-    if (normalized === 'resolved') return 'badge-success';
-    if (normalized === 'mitigating') return 'badge-medium';
+    if (normalized === 'closed' || normalized === 'mitigated') return 'badge-success';
+    if (normalized === 'monitoring') return 'badge-medium';
     return 'badge-medium';
 }
 
@@ -168,7 +168,7 @@ function initCreateForm() {
             impact: document.getElementById('impact').value,
             mitigationActions: sanitizeText(document.getElementById('mitigationPlan').value),
             mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value),
-            currentStatus: document.getElementById('currentStatus') ? document.getElementById('currentStatus').value : 'Identified'
+            currentStatus: document.getElementById('currentStatus') ? document.getElementById('currentStatus').value : 'Open'
         };
 
         if (!payload.title || !payload.mitigationPlan) {
@@ -178,7 +178,7 @@ function initCreateForm() {
             return;
         }
 
-        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical']) || !validateEnum(payload.currentStatus, ['Identified', 'Mitigating', 'Resolved'])) {
+        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical']) || !validateEnum(payload.currentStatus, ['Open', 'Monitoring', 'Mitigated', 'Closed'])) {
             setStatusMessage('createFormMessage', 'Please select valid probability, impact, and status values.', 'error');
             btn.textContent = 'Save Risk';
             btn.disabled = false;
@@ -271,8 +271,9 @@ async function initViewRisk() {
         }
         
         const statusEl = document.getElementById('riskStatus');
-        statusEl.textContent = risk.status;
-        statusEl.className = `badge badge-${risk.status.toLowerCase() === 'resolved' ? 'success' : 'medium'}`;
+        const activeStatus = risk.currentStatus || risk.status || 'Open';
+        statusEl.textContent = activeStatus;
+        statusEl.className = `badge ${statusBadgeClass(activeStatus)}`;
 
         document.getElementById('riskProb').textContent = risk.probability;
         const impactEl = document.getElementById('riskImpact');
@@ -282,7 +283,7 @@ async function initViewRisk() {
         document.getElementById('riskCreator').textContent = risk.createdBy ? risk.createdBy.name : 'Unknown';
         document.getElementById('riskDate').textContent = new Date(risk.createdAt).toLocaleDateString();
 
-        document.getElementById('quickStatusUpdate').value = risk.status;
+        document.getElementById('quickStatusUpdate').value = activeStatus;
 
         await renderRiskHistory(id, historyLoader, historyTimeline);
 
@@ -302,7 +303,7 @@ async function initViewRisk() {
     confirmStatusBtn.addEventListener('click', async () => {
         const updateBtn = document.getElementById('updateStatusBtn');
         const newStatus = modalStatusSelect.value;
-        if (!validateEnum(newStatus, ['Identified', 'Mitigating', 'Resolved'])) {
+        if (!validateEnum(newStatus, ['Open', 'Monitoring', 'Mitigated', 'Closed'])) {
             setStatusMessage('viewRiskMessage', 'Invalid status selected.', 'error');
             return;
         }
@@ -315,7 +316,7 @@ async function initViewRisk() {
             setStatusMessage('viewRiskMessage', 'Status updated successfully.', 'success');
             const statusEl = document.getElementById('riskStatus');
             statusEl.textContent = newStatus;
-            statusEl.className = `badge badge-${newStatus.toLowerCase() === 'resolved' ? 'success' : 'medium'}`;
+            statusEl.className = `badge ${statusBadgeClass(newStatus)}`;
             await renderRiskHistory(id, historyLoader, historyTimeline);
             document.getElementById('historySection').style.display = 'block';
             updateBtn.disabled = false;

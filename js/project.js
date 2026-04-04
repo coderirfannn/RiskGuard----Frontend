@@ -50,8 +50,8 @@ function impactBadgeClass(impact) {
 
 function statusBadgeClass(status) {
     const normalized = String(status || '').toLowerCase();
-    if (normalized === 'resolved') return 'badge-success';
-    if (normalized === 'mitigating') return 'badge-medium';
+    if (normalized === 'closed' || normalized === 'mitigated') return 'badge-success';
+    if (normalized === 'monitoring') return 'badge-medium';
     return 'badge-medium';
 }
 
@@ -62,7 +62,7 @@ function validateEnum(value, allowedValues) {
 function renderProjectRisk(risk, projectId) {
     const riskId = encodeURIComponent(risk?._id || risk?.id || '');
     const riskProjectId = encodeURIComponent(projectId);
-    const status = risk.currentStatus || risk.status || 'Identified';
+    const status = risk.currentStatus || risk.status || 'Open';
     const updatedAt = risk.updatedAt || risk.createdAt;
     const updatedText = updatedAt ? new Date(updatedAt).toLocaleString() : '-';
 
@@ -226,7 +226,7 @@ async function initProjectDetail() {
             return;
         }
 
-        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical']) || !validateEnum(payload.currentStatus, ['Identified', 'Mitigating', 'Resolved'])) {
+        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical']) || !validateEnum(payload.currentStatus, ['Open', 'Monitoring', 'Mitigated', 'Closed'])) {
             setStatusMessage('createRiskModalMessage', 'Please select valid probability, impact, and current status values.', 'error');
             return;
         }
