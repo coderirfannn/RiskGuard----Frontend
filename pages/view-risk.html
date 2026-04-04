@@ -13,12 +13,13 @@
         <div id="sidebar-container"></div>
         <div class="main-content">
             <div class="header">
-                <div>
+                <div class="project-hero__meta">
+                    <div class="breadcrumb"><a href="dashboard.html">Projects</a> / <a id="projectLink" href="#">Project</a> / Risk Detail</div>
                     <h1 id="riskTitle" style="margin-bottom: 5px;">Loading...</h1>
                     <span id="riskId" style="color:var(--text-color); opacity: 0.6; font-size:14px;"></span>
                 </div>
                 <div class="card-inline-actions" style="margin-top: 0; gap:10px;">
-                    <a id="historyBtn" href="#" class="btn" style="background:#e2e8f0; color:#0f172a; width:auto;">View History</a>
+                    <a id="historyBtn" href="#" class="btn" style="background:#e2e8f0; color:#0f172a; width:auto;">View History Page</a>
                     <a id="editBtn" href="#" class="btn btn-primary" style="width: auto">Edit Risk</a>
                 </div>
             </div>
@@ -58,6 +59,14 @@
                         <button id="updateStatusBtn" class="btn btn-primary">Update Status</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="card" id="historySection" style="display:none; margin-top: 20px;">
+                <div class="header" style="margin-bottom:20px; padding-bottom:0; border-bottom:0;">
+                    <h2 style="margin:0;">Full History Timeline</h2>
+                </div>
+                <div id="historyLoader" role="status" aria-live="polite">Loading History...</div>
+                <div class="timeline" id="riskHistoryTimeline" style="display:none;"></div>
             </div>
         </div>
     </div>

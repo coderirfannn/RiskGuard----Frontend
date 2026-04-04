@@ -13,9 +13,17 @@
         <div id="sidebar-container"></div>
         <div class="main-content">
             <div class="header">
-                <h1>Report New Risk</h1>
+                <div>
+                    <div class="breadcrumb"><a href="dashboard.html">Projects</a> / <a id="projectLink" href="dashboard.html">Loading project...</a> / Create Risk</div>
+                    <h1 style="margin:0;">Create New Risk</h1>
+                </div>
             </div>
             
+            <div class="card" style="max-width: 800px; margin-bottom: 20px;">
+                <h3 id="projectName" style="margin-top:0; margin-bottom:8px;">Loading project...</h3>
+                <p id="projectContext" style="margin:0; color:var(--text-muted);">Risks can only be created inside a project.</p>
+            </div>
+
             <div class="card" style="max-width: 800px;">
                 <form id="createRiskForm">
                     <div class="form-group">

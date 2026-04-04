@@ -15,12 +15,18 @@
 .form-row { display: flex; gap: 20px; }
 .form-row .form-group { flex: 1; }
 
+.project-hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.project-hero__meta { max-width: 70ch; }
+
+.project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
 @media (max-width: 768px) {
   .app-layout { flex-direction: column; }
   .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
   .main-content { padding: 20px 16px; }
   .header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .form-row { flex-direction: column; gap: 0; }
+  .project-hero { flex-direction: column; }
 }
 
 @media (min-width: 769px) and (max-width: 1023px) {

@@ -27,9 +27,9 @@ function loadSidebar() {
         <div class="sidebar">
             <h2>RiskGuard</h2>
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="dashboard.html">Projects</a></li>
+                <li><a href="create-project.html">Create Project</a></li>
                 <li><a href="risks.html">All Risks</a></li>
-                <li><a href="create-risk.html">Report Risk</a></li>
                 <li><a href="profile.html">Profile</a></li>
                 <li><button class="logout-link" id="logoutBtn" type="button">Logout</button></li>
             </ul>

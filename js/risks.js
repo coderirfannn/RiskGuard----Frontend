@@ -18,6 +18,14 @@ function sanitizeText(value) {
     return String(value || '').trim();
 }
 
+function projectIdFromRisk(risk) {
+    return risk?.project?._id || risk?.projectId || risk?.project || null;
+}
+
+function projectNameFromRisk(risk) {
+    return risk?.project?.name || risk?.project?.title || risk?.projectName || 'Unknown Project';
+}
+
 function impactBadgeClass(impact) {
     const normalized = String(impact || '').toLowerCase();
     if (normalized === 'low' || normalized === 'medium' || normalized === 'high' || normalized === 'critical') {
@@ -33,10 +41,92 @@ function setStatusMessage(targetId, message, type) {
     target.textContent = message;
 }
 
+async function renderRiskHistory(riskId, loader, timeline) {
+    try {
+        const historyData = await fetchAPI(`/risks/${riskId}/history`);
+        if (!Array.isArray(historyData) || historyData.length === 0) {
+            loader.textContent = 'No history logs found.';
+            return false;
+        }
+
+        timeline.innerHTML = historyData.map(log => `
+            <div class="timeline-item card" style="margin-bottom:15px; padding:15px;">
+                <span class="timeline-date">${escapeHTML(new Date(log.changedAt).toLocaleString())}</span>
+                <strong>Status changed to: </strong> <span class="badge badge-medium">${escapeHTML(log.status)}</span>
+            </div>
+        `).join('');
+
+        loader.style.display = 'none';
+        timeline.style.display = 'block';
+        return true;
+    } catch (err) {
+        loader.textContent = 'Failed to load history log.';
+        return false;
+    }
+}
+
+async function updateRiskStatus(id, status) {
+    try {
+        return await fetchAPI(`/risks/${id}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status })
+        });
+    } catch (err) {
+        if (!/not found/i.test(String(err.message || ''))) {
+            throw err;
+        }
+    }
+
+    try {
+        return await fetchAPI(`/risks/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status })
+        });
+    } catch (err) {
+        if (!/not found/i.test(String(err.message || ''))) {
+            throw err;
+        }
+    }
+
+    return fetchAPI(`/risks/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+    });
+}
+
 // 1. Create Risk
 function initCreateForm() {
     const form = document.getElementById('createRiskForm');
     if (!form) return;
+    const projectId = getUrlParam('projectId');
+    const projectLink = document.getElementById('projectLink');
+    const projectName = document.getElementById('projectName');
+    const projectContext = document.getElementById('projectContext');
+
+    if (!projectId) {
+        setStatusMessage('createFormMessage', 'Create a project first, then open it to add risks.', 'error');
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    (async () => {
+        try {
+            const project = await fetchAPI(`/projects/${projectId}`);
+            const projectTitle = project?.name || project?.title || 'Project';
+            if (projectLink) {
+                projectLink.href = `project-detail.html?id=${encodeURIComponent(projectId)}`;
+                projectLink.textContent = projectTitle;
+            }
+            if (projectName) {
+                projectName.textContent = projectTitle;
+            }
+            if (projectContext) {
+                projectContext.textContent = project?.description || 'Risks can only be created inside a project.';
+            }
+        } catch (err) {
+            setStatusMessage('createFormMessage', err.message || 'Unable to load project context.', 'error');
+        }
+    })();
     
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -60,8 +150,8 @@ function initCreateForm() {
         }
 
         try {
-            await fetchAPI('/risks', { method: 'POST', body: JSON.stringify(payload) });
-            window.location.href = 'dashboard.html';
+            await fetchAPI(`/projects/${projectId}/risks`, { method: 'POST', body: JSON.stringify(payload) });
+            window.location.href = `project-detail.html?id=${encodeURIComponent(projectId)}`;
         } catch (err) {
             setStatusMessage('createFormMessage', err.message || 'Failed to create risk.', 'error');
             btn.textContent = 'Save Risk';
@@ -74,18 +164,54 @@ function initCreateForm() {
 async function initViewRisk() {
     const id = getUrlParam('id');
     if (!id) return window.location.href = '404.html';
+    const projectIdParam = getUrlParam('projectId');
 
     const loader = document.getElementById('loader');
     const details = document.getElementById('detailsWrapper');
-    document.getElementById('editBtn').href = `update-risk.html?id=${id}`;
-    document.getElementById('historyBtn').href = `history.html?id=${id}`;
+    const projectLink = document.getElementById('projectLink');
+    const projectName = document.getElementById('projectName');
+    const projectDescription = document.getElementById('projectDescription');
+    const historyLoader = document.getElementById('historyLoader');
+    const historyTimeline = document.getElementById('riskHistoryTimeline');
 
     try {
         const risk = await fetchAPI(`/risks/${id}`);
+        const projectId = projectIdParam || projectIdFromRisk(risk);
+
+        document.getElementById('editBtn').href = `update-risk.html?id=${id}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`;
+        document.getElementById('historyBtn').href = `history.html?id=${id}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`;
         document.getElementById('riskTitle').textContent = risk.title;
         document.getElementById('riskId').textContent = `ID: ${risk._id}`;
         document.getElementById('riskDesc').textContent = risk.description || 'No description provided.';
         document.getElementById('riskMitigation').textContent = risk.mitigationPlan;
+
+        if (projectId) {
+            try {
+                const project = await fetchAPI(`/projects/${projectId}`);
+                const projectTitle = project?.name || project?.title || projectNameFromRisk(risk);
+                if (projectLink) {
+                    projectLink.href = `project-detail.html?id=${encodeURIComponent(projectId)}`;
+                    projectLink.textContent = projectTitle;
+                }
+                if (projectName) {
+                    projectName.textContent = projectTitle;
+                }
+                if (projectDescription) {
+                    projectDescription.textContent = project?.description || `Project linked to ${projectTitle}.`;
+                }
+            } catch (err) {
+                if (projectLink) {
+                    projectLink.textContent = projectNameFromRisk(risk);
+                    projectLink.href = `project-detail.html?id=${encodeURIComponent(projectId)}`;
+                }
+                if (projectName) {
+                    projectName.textContent = projectNameFromRisk(risk);
+                }
+                if (projectDescription) {
+                    projectDescription.textContent = 'Project details are unavailable.';
+                }
+            }
+        }
         
         const statusEl = document.getElementById('riskStatus');
         statusEl.textContent = risk.status;
@@ -101,8 +227,11 @@ async function initViewRisk() {
 
         document.getElementById('quickStatusUpdate').value = risk.status;
 
+        await renderRiskHistory(id, historyLoader, historyTimeline);
+
         loader.style.display = 'none';
         details.style.display = 'grid';
+        document.getElementById('historySection').style.display = 'block';
     } catch (err) {
         document.getElementById('riskTitle').textContent = 'Risk not found';
         loader.textContent = 'Could not load risk.';
@@ -116,10 +245,7 @@ async function initViewRisk() {
         updateBtn.textContent = 'Updating...';
         updateBtn.disabled = true;
         try {
-            await fetchAPI(`/risks/${id}/status`, {
-                method: 'PATCH',
-                body: JSON.stringify({ status: newStatus })
-            });
+            await updateRiskStatus(id, newStatus);
             setStatusMessage('viewRiskMessage', 'Status updated successfully.', 'success');
             const statusEl = document.getElementById('riskStatus');
             statusEl.textContent = newStatus;
@@ -211,30 +337,13 @@ async function initUpdateForm() {
 async function initHistory() {
     const id = getUrlParam('id');
     if (!id) return window.location.href = '404.html';
+    const projectId = getUrlParam('projectId');
 
-    document.getElementById('backBtn').href = `view-risk.html?id=${id}`;
+    document.getElementById('backBtn').href = `view-risk.html?id=${id}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`;
     const loader = document.getElementById('loader');
     const timeline = document.getElementById('timelineList');
 
-    try {
-        const historyData = await fetchAPI(`/risks/${id}/history`);
-        if (historyData.length === 0) {
-            loader.textContent = 'No history logs found.';
-            return;
-        }
-
-        timeline.innerHTML = historyData.map(log => `
-            <div class="timeline-item card" style="margin-bottom:15px; padding:15px;">
-                <span class="timeline-date">${escapeHTML(new Date(log.changedAt).toLocaleString())}</span>
-                <strong>Status changed to: </strong> <span class="badge badge-medium">${escapeHTML(log.status)}</span>
-            </div>
-        `).join('');
-
-        loader.style.display = 'none';
-        timeline.style.display = 'block';
-    } catch (err) {
-        loader.textContent = 'Failed to load history log.';
-    }
+    await renderRiskHistory(id, loader, timeline);
 }
 
 // 5. Load All Risks
@@ -246,17 +355,18 @@ async function loadAllRisks() {
     try {
         const risks = await fetchAPI('/risks');
         if (risks.length === 0) {
-            risksGrid.innerHTML = '<p>No risks have been reported.</p>';
+            risksGrid.innerHTML = '<div class="empty-state"><h3>No risks have been reported.</h3><p>Create a project first, then add risks inside it.</p></div>';
         } else {
             risksGrid.innerHTML = risks.map(risk => `
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0"><a href="view-risk.html?id=${encodeURIComponent(risk._id)}">${escapeHTML(risk.title)}</a></h3>
+                        <h3 style="margin:0"><a href="view-risk.html?id=${encodeURIComponent(risk._id)}${projectIdFromRisk(risk) ? `&projectId=${encodeURIComponent(projectIdFromRisk(risk))}` : ''}">${escapeHTML(risk.title)}</a></h3>
                         <span class="badge ${impactBadgeClass(risk.impact)}">${escapeHTML(risk.impact)}</span>
                     </div>
                     <p class="line-clamp-2" style="margin:10px 0; font-size:14px; color:var(--text-color); opacity:0.8;">
                         ${escapeHTML(risk.mitigationPlan)}
                     </p>
+                    ${projectIdFromRisk(risk) ? `<p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted);">Project: <a href="project-detail.html?id=${encodeURIComponent(projectIdFromRisk(risk))}">${escapeHTML(projectNameFromRisk(risk))}</a></p>` : `<p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted);">Project: ${escapeHTML(projectNameFromRisk(risk))}</p>`}
                     <div style="font-size:12px; color:var(--text-color); opacity:0.6; margin-top:15px;">
                         Created: ${escapeHTML(new Date(risk.createdAt).toLocaleDateString())}
                     </div>

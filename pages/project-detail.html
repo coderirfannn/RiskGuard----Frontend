@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskGuard - Project Detail</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div class="app-layout">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div class="header project-hero">
+                <div class="project-hero__meta">
+                    <div class="breadcrumb"><a href="dashboard.html">Projects</a> / <span id="breadcrumbProjectName">Loading...</span></div>
+                    <h1 id="projectTitle" style="margin:0 0 10px 0;">Loading project...</h1>
+                    <p id="projectDescription" style="margin:0; color:var(--text-muted);"></p>
+                </div>
+                <div class="card-inline-actions" style="margin-top: 0; gap:10px;">
+                    <a id="createRiskBtn" href="#" class="btn btn-primary" style="width:auto;">Create New Risk</a>
+                    <a href="dashboard.html" class="btn" style="background:#e2e8f0; color:#0f172a; width:auto;">Back to Projects</a>
+                </div>
+            </div>
+
+            <div id="loader" role="status" aria-live="polite">Loading Project...</div>
+
+            <div class="grid" id="projectSummary" style="display:none;">
+                <div class="card">
+                    <h3>Created</h3>
+                    <h2 style="font-size: 24px; margin: 12px 0 0 0;" id="projectCreated">-</h2>
+                </div>
+                <div class="card">
+                    <h3>Owner</h3>
+                    <h2 style="font-size: 24px; margin: 12px 0 0 0;" id="projectOwner">-</h2>
+                </div>
+                <div class="card">
+                    <h3>Risks</h3>
+                    <h2 style="font-size: 24px; margin: 12px 0 0 0; color: var(--danger)" id="projectRiskCount">0</h2>
+                </div>
+            </div>
+
+            <div class="card" id="projectRisksSection" style="display:none; margin-top: 20px;">
+                <div class="header" style="margin-bottom:20px; padding-bottom:0; border-bottom:0;">
+                    <h2 style="margin:0;">Risks in This Project</h2>
+                </div>
+                <div id="project-empty-state" class="empty-state" style="display:none;">
+                    <h3 style="margin-top:0;">No risks yet</h3>
+                    <p>Create the first risk inside this project.</p>
+                </div>
+                <div class="project-grid" id="project-risks-grid"></div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/project.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            loadSidebar();
+            initProjectDetail();
+        });
+    </script>
+</body>
+</html>
