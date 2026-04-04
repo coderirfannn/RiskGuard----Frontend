@@ -69,6 +69,40 @@
                     <div id="modalProjectMessage" class="status-message" role="alert" aria-live="polite"></div>
                 </form>
             </div>
+
+            <div class="modal-backdrop" id="editProjectBackdrop" hidden></div>
+            <div class="modal" id="editProjectModal" aria-hidden="true" hidden>
+                <div class="modal__header">
+                    <h3 style="margin:0;">Edit Project</h3>
+                    <button type="button" class="modal__close" id="closeEditProjectModalBtn" aria-label="Close edit project modal">&times;</button>
+                </div>
+                <form id="dashboardEditProjectForm">
+                    <input type="hidden" id="editProjectId" />
+                    <div class="form-group">
+                        <label for="editProjectTitle">Title</label>
+                        <input type="text" id="editProjectTitle" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editProjectDescription">Description</label>
+                        <textarea id="editProjectDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editProjectStartDate">Start Date</label>
+                            <input type="date" id="editProjectStartDate" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="editProjectEndDate">End Date</label>
+                            <input type="date" id="editProjectEndDate" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="card-inline-actions" style="margin-top: 6px;">
+                        <button type="submit" class="btn btn-primary" id="editProjectSaveBtn">Save Changes</button>
+                        <button type="button" class="btn" id="editProjectCancelBtn" style="background:#e2e8f0; color:#0f172a;">Cancel</button>
+                    </div>
+                    <div id="editProjectMessage" class="status-message" role="alert" aria-live="polite"></div>
+                </form>
+            </div>
         </div>
     </div>
     <script src="../js/auth.js"></script>

@@ -34,6 +34,17 @@ function impactBadgeClass(impact) {
     return 'badge-medium';
 }
 
+function statusBadgeClass(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'resolved') return 'badge-success';
+    if (normalized === 'mitigating') return 'badge-medium';
+    return 'badge-medium';
+}
+
+function validateEnum(value, allowedValues) {
+    return allowedValues.includes(String(value || ''));
+}
+
 function setStatusMessage(targetId, message, type) {
     const target = document.getElementById(targetId);
     if (!target) return;
@@ -51,10 +62,18 @@ async function renderRiskHistory(riskId, loader, timeline) {
             return false;
         }
 
-        timeline.innerHTML = historyData.map(log => `
+        const sortedHistory = historyData
+            .slice()
+            .sort((a, b) => new Date(b.changedAt || b.createdAt || 0) - new Date(a.changedAt || a.createdAt || 0));
+
+        timeline.innerHTML = sortedHistory.map(log => `
             <div class="timeline-item card" style="margin-bottom:15px; padding:15px;">
                 <span class="timeline-date">${escapeHTML(new Date(log.changedAt).toLocaleString())}</span>
-                <strong>Status changed to: </strong> <span class="badge badge-medium">${escapeHTML(log.status)}</span>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    <strong>Status:</strong> <span class="badge ${statusBadgeClass(log.status)}">${escapeHTML(log.status || '-')}</span>
+                </div>
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:6px;">By: ${escapeHTML(log.changedBy?.name || log.changedBy?.email || 'Unknown')}</div>
+                <div style="font-size:14px;">${escapeHTML(log.note || 'No note provided.')}</div>
             </div>
         `).join('');
 
@@ -148,11 +167,19 @@ function initCreateForm() {
             probability: document.getElementById('probability').value,
             impact: document.getElementById('impact').value,
             mitigationActions: sanitizeText(document.getElementById('mitigationPlan').value),
-            mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value)
+            mitigationPlan: sanitizeText(document.getElementById('mitigationPlan').value),
+            currentStatus: document.getElementById('currentStatus') ? document.getElementById('currentStatus').value : 'Identified'
         };
 
         if (!payload.title || !payload.mitigationPlan) {
             setStatusMessage('createFormMessage', 'Title and mitigation plan are required.', 'error');
+            btn.textContent = 'Save Risk';
+            btn.disabled = false;
+            return;
+        }
+
+        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical']) || !validateEnum(payload.currentStatus, ['Identified', 'Mitigating', 'Resolved'])) {
+            setStatusMessage('createFormMessage', 'Please select valid probability, impact, and status values.', 'error');
             btn.textContent = 'Save Risk';
             btn.disabled = false;
             return;
@@ -275,6 +302,10 @@ async function initViewRisk() {
     confirmStatusBtn.addEventListener('click', async () => {
         const updateBtn = document.getElementById('updateStatusBtn');
         const newStatus = modalStatusSelect.value;
+        if (!validateEnum(newStatus, ['Identified', 'Mitigating', 'Resolved'])) {
+            setStatusMessage('viewRiskMessage', 'Invalid status selected.', 'error');
+            return;
+        }
         const previousText = confirmStatusBtn.textContent;
         confirmStatusBtn.textContent = 'Updating...';
         confirmStatusBtn.disabled = true;
@@ -310,6 +341,7 @@ async function initViewRisk() {
 // 3. Update Risk
 async function initUpdateForm() {
     const id = getUrlParam('id');
+    const projectId = getUrlParam('projectId');
     if (!id) return window.location.href = '404.html';
 
     const form = document.getElementById('updateRiskForm');
@@ -353,9 +385,16 @@ async function initUpdateForm() {
             return;
         }
 
+        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical'])) {
+            setStatusMessage('updateFormMessage', 'Please select valid probability and impact values.', 'error');
+            saveBtn.textContent = previousText;
+            saveBtn.disabled = false;
+            return;
+        }
+
         try {
             await fetchAPI(`/risks/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-            window.location.href = `view-risk.html?id=${id}`;
+            window.location.href = `view-risk.html?id=${id}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`;
         } catch (err) {
             setStatusMessage('updateFormMessage', err.message || 'Failed to update risk.', 'error');
             saveBtn.textContent = previousText;
@@ -372,7 +411,7 @@ async function initUpdateForm() {
             delBtn.disabled = true;
             try {
                 await fetchAPI(`/risks/${id}`, { method: 'DELETE' });
-                window.location.href = 'risks.html';
+                window.location.href = projectId ? `project-detail.html?id=${encodeURIComponent(projectId)}` : 'risks.html';
             } catch (err) {
                 setStatusMessage('updateFormMessage', err.message || 'Failed to delete risk.', 'error');
                 delBtn.textContent = previousText;

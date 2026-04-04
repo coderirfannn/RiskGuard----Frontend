@@ -57,6 +57,14 @@
                         <label for="mitigationPlan">Mitigation Actions</label>
                         <textarea id="mitigationPlan" class="form-control" rows="4" required></textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="currentStatus">Initial Current Status</label>
+                        <select id="currentStatus" class="form-control" required>
+                            <option value="Identified">Identified</option>
+                            <option value="Mitigating">Mitigating</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary" id="saveBtn">Save Risk</button>
                     <div id="createFormMessage" class="status-message" role="alert" aria-live="polite"></div>
                 </form>

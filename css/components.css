@@ -150,6 +150,38 @@
 	display: block;
 }
 
+.table-wrap {
+	overflow-x: auto;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+}
+
+.data-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: var(--white);
+	min-width: 820px;
+}
+
+.data-table th,
+.data-table td {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--border-color);
+	text-align: left;
+	vertical-align: middle;
+	font-size: 14px;
+}
+
+.data-table th {
+	font-weight: 700;
+	background: #f8fafc;
+	color: var(--text-color);
+}
+
+.data-table tbody tr:hover {
+	background: #f8fafc;
+}
+
 .modal-backdrop {
 	position: fixed;
 	inset: 0;
@@ -202,5 +234,8 @@
 	.timeline {
 		margin-left: 14px;
 		padding-left: 20px;
+	}
+	.data-table {
+		min-width: 680px;
 	}
 }

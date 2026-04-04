@@ -48,27 +48,41 @@ function impactBadgeClass(impact) {
     return 'badge-medium';
 }
 
+function statusBadgeClass(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'resolved') return 'badge-success';
+    if (normalized === 'mitigating') return 'badge-medium';
+    return 'badge-medium';
+}
+
+function validateEnum(value, allowedValues) {
+    return allowedValues.includes(String(value || ''));
+}
+
 function renderProjectRisk(risk, projectId) {
     const riskId = encodeURIComponent(risk?._id || risk?.id || '');
     const riskProjectId = encodeURIComponent(projectId);
+    const status = risk.currentStatus || risk.status || 'Identified';
+    const updatedAt = risk.updatedAt || risk.createdAt;
+    const updatedText = updatedAt ? new Date(updatedAt).toLocaleString() : '-';
 
     return `
-        <div class="card project-card">
-            <div class="project-card__header">
-                <div class="project-card__meta">
-                    <h3 style="margin:0 0 8px 0;"><a href="view-risk.html?id=${riskId}&projectId=${riskProjectId}">${escapeHTML(risk.title || 'Untitled Risk')}</a></h3>
-                    <p style="margin:0; color:var(--text-muted);">${escapeHTML(risk.description || 'No description provided.')}</p>
+        <tr>
+            <td>
+                <a href="view-risk.html?id=${riskId}&projectId=${riskProjectId}">${escapeHTML(risk.title || 'Untitled Risk')}</a>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${escapeHTML(risk.description || 'No description provided.')}</div>
+            </td>
+            <td>${escapeHTML(risk.probability || '-')}</td>
+            <td><span class="badge ${impactBadgeClass(risk.impact)}">${escapeHTML(risk.impact || 'Medium')}</span></td>
+            <td><span class="badge ${statusBadgeClass(status)}">${escapeHTML(status)}</span></td>
+            <td>${escapeHTML(updatedText)}</td>
+            <td>
+                <div class="card-inline-actions" style="margin-top:0; gap:8px;">
+                    <a href="view-risk.html?id=${riskId}&projectId=${riskProjectId}" class="btn btn-primary" style="width:auto;">View</a>
+                    <a href="update-risk.html?id=${riskId}&projectId=${riskProjectId}" class="btn" style="width:auto; background:#e2e8f0; color:#0f172a;">Edit</a>
                 </div>
-                <span class="badge ${impactBadgeClass(risk.impact)}">${escapeHTML(risk.impact || 'Medium')}</span>
-            </div>
-            <p class="line-clamp-2" style="margin:0; font-size:14px; color:var(--text-color); opacity:0.8;">
-                ${escapeHTML(risk.mitigationActions || risk.mitigationPlan || 'No mitigation actions provided.')}
-            </p>
-            <div class="project-card__footer">
-                <span style="color:var(--text-muted); font-size:14px;">Status: <strong>${escapeHTML(risk.status || 'Identified')}</strong></span>
-                <a href="view-risk.html?id=${riskId}&projectId=${riskProjectId}" class="btn btn-primary" style="width:auto;">Open Risk</a>
-            </div>
-        </div>
+            </td>
+        </tr>
     `;
 }
 
@@ -129,15 +143,21 @@ function renderProjectMeta(project, totalRisks) {
 async function loadProjectRisks(projectId) {
     const riskGrid = document.getElementById('project-risks-grid');
     const emptyState = document.getElementById('project-empty-state');
+    const riskTableWrap = document.getElementById('project-risks-wrap');
     const risks = await fetchAPI(`/projects/${projectId}/risks`);
     const totalRisks = Array.isArray(risks) ? risks.length : 0;
 
     if (!totalRisks) {
         emptyState.style.display = 'block';
+        riskTableWrap.style.display = 'none';
         riskGrid.innerHTML = '';
     } else {
         emptyState.style.display = 'none';
-        riskGrid.innerHTML = risks.map((risk) => renderProjectRisk(risk, projectId)).join('');
+        riskTableWrap.style.display = 'block';
+        riskGrid.innerHTML = risks
+            .slice()
+            .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
+            .map((risk) => renderProjectRisk(risk, projectId)).join('');
     }
 
     document.getElementById('projectRiskCount').textContent = String(totalRisks);
@@ -197,11 +217,17 @@ async function initProjectDetail() {
             probability: document.getElementById('riskProbability').value,
             impact: document.getElementById('riskImpact').value,
             mitigationActions: sanitizeText(document.getElementById('riskMitigationActions').value),
-            mitigationPlan: sanitizeText(document.getElementById('riskMitigationActions').value)
+            mitigationPlan: sanitizeText(document.getElementById('riskMitigationActions').value),
+            currentStatus: document.getElementById('riskCurrentStatus').value
         };
 
         if (!payload.title || !payload.mitigationActions) {
             setStatusMessage('createRiskModalMessage', 'Title and mitigation actions are required.', 'error');
+            return;
+        }
+
+        if (!validateEnum(payload.probability, ['Low', 'Medium', 'High']) || !validateEnum(payload.impact, ['Low', 'Medium', 'High', 'Critical']) || !validateEnum(payload.currentStatus, ['Identified', 'Mitigating', 'Resolved'])) {
+            setStatusMessage('createRiskModalMessage', 'Please select valid probability, impact, and current status values.', 'error');
             return;
         }
 

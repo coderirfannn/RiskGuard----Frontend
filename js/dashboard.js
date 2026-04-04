@@ -47,6 +47,18 @@ function setDashboardMessage(message, type) {
     messageEl.textContent = message;
 }
 
+function setEditProjectMessage(message, type) {
+    const messageEl = document.getElementById('editProjectMessage');
+    if (!messageEl) return;
+    if (!message) {
+        messageEl.className = 'status-message';
+        messageEl.textContent = '';
+        return;
+    }
+    messageEl.className = `status-message ${type}`;
+    messageEl.textContent = message;
+}
+
 function initDashboardProjectModal() {
     const modal = document.getElementById('createProjectModal');
     const backdrop = document.getElementById('createProjectBackdrop');
@@ -116,6 +128,123 @@ function initDashboardProjectModal() {
     });
 }
 
+function initDashboardProjectActions() {
+    const projectsList = document.getElementById('projects-list');
+    const editModal = document.getElementById('editProjectModal');
+    const editBackdrop = document.getElementById('editProjectBackdrop');
+    const editCloseBtn = document.getElementById('closeEditProjectModalBtn');
+    const editCancelBtn = document.getElementById('editProjectCancelBtn');
+    const editForm = document.getElementById('dashboardEditProjectForm');
+    const editSaveBtn = document.getElementById('editProjectSaveBtn');
+
+    if (!projectsList || !editModal || !editBackdrop || !editForm) return;
+
+    const openEditModal = (project) => {
+        document.getElementById('editProjectId').value = project.id;
+        document.getElementById('editProjectTitle').value = project.title;
+        document.getElementById('editProjectDescription').value = project.description;
+        document.getElementById('editProjectStartDate').value = project.startDate;
+        document.getElementById('editProjectEndDate').value = project.endDate;
+        setEditProjectMessage('', '');
+
+        editModal.hidden = false;
+        editBackdrop.hidden = false;
+        editModal.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeEditModal = () => {
+        editModal.hidden = true;
+        editBackdrop.hidden = true;
+        editModal.setAttribute('aria-hidden', 'true');
+    };
+
+    projectsList.addEventListener('click', async (event) => {
+        const editBtn = event.target.closest('[data-action="edit-project"]');
+        const deleteBtn = event.target.closest('[data-action="delete-project"]');
+
+        if (editBtn) {
+            const projectId = editBtn.getAttribute('data-project-id');
+            const projectTitle = editBtn.getAttribute('data-project-title') || '';
+            const projectDescription = editBtn.getAttribute('data-project-description') || '';
+            const projectStartDate = editBtn.getAttribute('data-project-start-date') || '';
+            const projectEndDate = editBtn.getAttribute('data-project-end-date') || '';
+
+            openEditModal({
+                id: projectId,
+                title: projectTitle,
+                description: projectDescription,
+                startDate: projectStartDate,
+                endDate: projectEndDate
+            });
+            return;
+        }
+
+        if (deleteBtn) {
+            const projectId = deleteBtn.getAttribute('data-project-id');
+            const projectTitle = deleteBtn.getAttribute('data-project-title') || 'this project';
+
+            if (!confirm(`Delete ${projectTitle}? This action cannot be undone.`)) {
+                return;
+            }
+
+            const previousText = deleteBtn.textContent;
+            deleteBtn.textContent = 'Deleting...';
+            deleteBtn.disabled = true;
+
+            try {
+                await fetchAPI(`/projects/${projectId}`, { method: 'DELETE' });
+                await loadProjectDashboard();
+            } catch (err) {
+                alert(err.message || 'Failed to delete project.');
+            } finally {
+                deleteBtn.textContent = previousText;
+                deleteBtn.disabled = false;
+            }
+        }
+    });
+
+    editCloseBtn.addEventListener('click', closeEditModal);
+    editCancelBtn.addEventListener('click', closeEditModal);
+    editBackdrop.addEventListener('click', closeEditModal);
+
+    editForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const projectId = document.getElementById('editProjectId').value;
+        const title = sanitizeText(document.getElementById('editProjectTitle').value);
+        const description = sanitizeText(document.getElementById('editProjectDescription').value);
+        const startDate = document.getElementById('editProjectStartDate').value;
+        const endDate = document.getElementById('editProjectEndDate').value;
+
+        if (!title || !startDate || !endDate) {
+            setEditProjectMessage('Title, start date, and end date are required.', 'error');
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            setEditProjectMessage('Start date cannot be after end date.', 'error');
+            return;
+        }
+
+        const previousText = editSaveBtn.textContent;
+        editSaveBtn.textContent = 'Saving...';
+        editSaveBtn.disabled = true;
+
+        try {
+            await fetchAPI(`/projects/${projectId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ title, description, startDate, endDate })
+            });
+            closeEditModal();
+            await loadProjectDashboard();
+        } catch (err) {
+            setEditProjectMessage(err.message || 'Failed to update project.', 'error');
+        } finally {
+            editSaveBtn.textContent = previousText;
+            editSaveBtn.disabled = false;
+        }
+    });
+}
+
 async function loadProjectDashboard() {
     const loader = document.getElementById('loader');
     const statsGrid = document.getElementById('stats-grid');
@@ -153,18 +282,27 @@ async function loadProjectDashboard() {
             projectsList.innerHTML = projects.map(project => {
                 const riskCount = projectRiskCount(project);
                 const projectId = encodeURIComponent(project?._id || project?.id || '');
+                const rawProjectId = escapeHTML(String(project?._id || project?.id || ''));
+                const title = projectTitle(project);
+                const description = project.description || '';
+                const startDate = project.startDate ? new Date(project.startDate).toISOString().slice(0, 10) : '';
+                const endDate = project.endDate ? new Date(project.endDate).toISOString().slice(0, 10) : '';
                 return `
                     <div class="card project-card">
                         <div class="project-card__header">
                             <div class="project-card__meta">
-                                <h3 style="margin:0 0 8px 0;"><a href="project-detail.html?id=${projectId}">${escapeHTML(projectTitle(project))}</a></h3>
+                                <h3 style="margin:0 0 8px 0;"><a href="project-detail.html?id=${projectId}">${escapeHTML(title)}</a></h3>
                                 <p style="margin:0; color:var(--text-muted);">${escapeHTML(project.description || 'No description provided.')}</p>
                             </div>
                             <span class="badge badge-medium">${riskCount} risk${riskCount === 1 ? '' : 's'}</span>
                         </div>
                         <div class="project-card__footer">
                             <span style="color:var(--text-muted); font-size:14px;">Created ${escapeHTML(project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'recently')}</span>
-                            <a href="project-detail.html?id=${projectId}" class="btn btn-primary" style="width:auto;">Open Project</a>
+                            <div class="card-inline-actions" style="margin-top:0; gap:8px;">
+                                <a href="project-detail.html?id=${projectId}" class="btn btn-primary" style="width:auto;">View</a>
+                                <button type="button" class="btn" data-action="edit-project" data-project-id="${rawProjectId}" data-project-title="${escapeHTML(title)}" data-project-description="${escapeHTML(description)}" data-project-start-date="${escapeHTML(startDate)}" data-project-end-date="${escapeHTML(endDate)}" style="width:auto; background:#e2e8f0; color:#0f172a;">Edit</button>
+                                <button type="button" class="btn btn-danger" data-action="delete-project" data-project-id="${rawProjectId}" data-project-title="${escapeHTML(title)}" style="width:auto;">Delete</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -176,3 +314,5 @@ async function loadProjectDashboard() {
         loader.style.display = 'none';
     }
 }
+
+initDashboardProjectActions();
