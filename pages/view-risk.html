@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskGuard - View Risk</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div class="app-layout">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1 id="riskTitle" style="margin-bottom: 5px;">Loading...</h1>
+                    <span id="riskId" style="color:var(--text-color); opacity: 0.6; font-size:14px;"></span>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <a id="historyBtn" href="#" class="btn" style="background:#e2e8f0; color:#0f172a; width:auto;">View History</a>
+                    <a id="editBtn" href="#" class="btn btn-primary" style="width: auto">Edit Risk</a>
+                </div>
+            </div>
+            
+            <div id="loader">Loading Details...</div>
+            
+            <div class="grid" id="detailsWrapper" style="display:none; grid-template-columns: 2fr 1fr;">
+                <div>
+                    <div class="card">
+                        <h3>Description</h3>
+                        <p id="riskDesc"></p>
+                    </div>
+                    <div class="card">
+                        <h3>Mitigation Plan</h3>
+                        <p id="riskMitigation"></p>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3>Risk Parameters</h3>
+                        <ul style="list-style:none; padding:0; margin:0; line-height:2.5;">
+                            <li><strong>Status:</strong> <span id="riskStatus" class="badge"></span></li>
+                            <li><strong>Probability:</strong> <span id="riskProb"></span></li>
+                            <li><strong>Impact:</strong> <span id="riskImpact" class="badge"></span></li>
+                            <li><strong>Creator:</strong> <span id="riskCreator"></span></li>
+                            <li><strong>Created:</strong> <span id="riskDate"></span></li>
+                        </ul>
+                        
+                        <hr style="border:0; border-top:1px solid var(--border-color); margin: 20px 0;">
+                        <h4>Quick Status Update</h4>
+                        <select id="quickStatusUpdate" class="form-control" style="margin-bottom:10px;">
+                            <option value="Identified">Identified</option>
+                            <option value="Mitigating">Mitigating</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                        <button id="updateStatusBtn" class="btn btn-primary">Update Status</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/risks.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            loadSidebar();
+            initViewRisk();
+        });
+    </script>
+</body>
+</html>

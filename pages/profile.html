@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskGuard - Profile</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div class="app-layout">
+        <div id="sidebar-container"></div>
+        <div class="main-content">
+            <div class="header">
+                <h1>My Profile</h1>
+            </div>
+            
+            <div class="card" style="max-width: 600px;">
+                <div id="loader">Loading Profile...</div>
+                <div id="profileDetails" style="display:none; text-align:center;">
+                    <div style="width:100px; height:100px; background:var(--primary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin: 0 auto 20px;">
+                        <span id="pInitials">U</span>
+                    </div>
+                    <h2 id="pName" style="margin-bottom:5px;"></h2>
+                    <p id="pEmail" style="color:var(--text-color); opacity:0.8; margin-bottom:20px;"></p>
+                    <span class="badge badge-low" id="pRole" style="text-transform:uppercase;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            requireAuth();
+            loadSidebar();
+            const loader = document.getElementById('loader');
+            try {
+                loader.style.display = 'block';
+                const user = await fetchAPI('/auth/profile');
+                document.getElementById('pName').textContent = user.name;
+                document.getElementById('pEmail').textContent = user.email;
+                document.getElementById('pRole').textContent = user.role;
+                document.getElementById('pInitials').textContent = user.name.charAt(0).toUpperCase();
+                document.getElementById('profileDetails').style.display = 'block';
+            } catch (err) {
+                alert('Error loading profile');
+            } finally { loader.style.display = 'none'; }
+        });
+    </script>
+</body>
+</html>

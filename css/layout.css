@@ -1,0 +1,18 @@
+/* LAYOUT CSS */
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.auth-wrapper { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg-color); }
+.app-layout { display: flex; min-height: 100vh; }
+.sidebar { width: 250px; background: var(--white); border-right: 1px solid var(--border-color); padding: 20px; }
+.sidebar h2 { margin-top: 0; color: var(--primary-color); }
+.sidebar ul { list-style: none; padding: 0; margin-top: 30px; }
+.sidebar li { margin-bottom: 15px; }
+.sidebar a { color: var(--text-color); font-weight: 500; display: block; padding: 10px; border-radius: 5px; }
+.sidebar a:hover { background: var(--bg-color); color: var(--primary-color); }
+.main-content { flex: 1; padding: 30px; overflow-y: auto;}
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+
+@media (max-width: 768px) {
+  .app-layout { flex-direction: column; }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+}

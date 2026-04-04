@@ -1,0 +1,25 @@
+/* GLOBAL CSS */
+:root {
+  --bg-color: #f8fafc;
+  --text-color: #0f172a;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --white: #ffffff;
+  --border-color: #e2e8f0;
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+}
+
+* { box-sizing: border-box; }
+
+a { text-decoration: none; color: var(--primary-color); }
+a:hover { color: var(--primary-hover); }
