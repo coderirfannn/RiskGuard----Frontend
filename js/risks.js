@@ -441,7 +441,40 @@ async function loadAllRisks() {
     loader.style.display = 'block';
 
     try {
-        const risks = await fetchAPI('/risks');
+        let risks = [];
+
+        try {
+            const directRisks = await fetchAPI('/risks');
+            risks = Array.isArray(directRisks) ? directRisks : [];
+        } catch (directErr) {
+            const projects = await fetchAPI('/projects');
+            const safeProjects = Array.isArray(projects) ? projects : [];
+
+            const risksByProject = await Promise.all(
+                safeProjects.map(async (project) => {
+                    const projectId = project?._id || project?.id;
+                    if (!projectId) {
+                        return [];
+                    }
+
+                    try {
+                        const projectRisks = await fetchAPI(`/projects/${projectId}/risks`);
+                        const safeProjectRisks = Array.isArray(projectRisks) ? projectRisks : [];
+
+                        return safeProjectRisks.map((risk) => ({
+                            ...risk,
+                            projectId: risk?.projectId || risk?.project?._id || projectId,
+                            project: risk?.project || { _id: projectId, name: project?.title || project?.name || 'Project' }
+                        }));
+                    } catch (projectRiskErr) {
+                        return [];
+                    }
+                })
+            );
+
+            risks = risksByProject.flat();
+        }
+
         if (risks.length === 0) {
             risksGrid.innerHTML = '<div class="empty-state"><h3>No risks have been reported.</h3><p>Create a project first, then add risks inside it.</p></div>';
         } else {
