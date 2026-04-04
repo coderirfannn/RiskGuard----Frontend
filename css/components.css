@@ -150,6 +150,43 @@
 	display: block;
 }
 
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.52);
+	z-index: 40;
+}
+
+.modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(92vw, 460px);
+	background: var(--white);
+	border-radius: 12px;
+	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+	padding: 20px;
+	z-index: 50;
+}
+
+.modal__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.modal__close {
+	background: transparent;
+	border: 0;
+	font-size: 30px;
+	line-height: 1;
+	cursor: pointer;
+	color: var(--text-muted);
+}
+
 #loader { display: none; text-align: center; padding: 20px; font-weight: 500; color: var(--primary-color);}
 
 @media (max-width: 768px) {

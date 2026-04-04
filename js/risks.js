@@ -173,6 +173,25 @@ async function initViewRisk() {
     const projectDescription = document.getElementById('projectDescription');
     const historyLoader = document.getElementById('historyLoader');
     const historyTimeline = document.getElementById('riskHistoryTimeline');
+    const statusModal = document.getElementById('statusModal');
+    const statusModalBackdrop = document.getElementById('statusModalBackdrop');
+    const modalStatusSelect = document.getElementById('modalStatusSelect');
+    const confirmStatusBtn = document.getElementById('confirmStatusBtn');
+    const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
+    const cancelStatusModalBtn = document.getElementById('cancelStatusModalBtn');
+
+    function openStatusModal(initialStatus) {
+        modalStatusSelect.value = initialStatus;
+        statusModal.hidden = false;
+        statusModalBackdrop.hidden = false;
+        statusModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeStatusModal() {
+        statusModal.hidden = true;
+        statusModalBackdrop.hidden = true;
+        statusModal.setAttribute('aria-hidden', 'true');
+    }
 
     try {
         const risk = await fetchAPI(`/risks/${id}`);
@@ -239,22 +258,40 @@ async function initViewRisk() {
 
     // Status Update Binding
     document.getElementById('updateStatusBtn').addEventListener('click', async () => {
+        openStatusModal(document.getElementById('quickStatusUpdate').value);
+    });
+
+    confirmStatusBtn.addEventListener('click', async () => {
         const updateBtn = document.getElementById('updateStatusBtn');
-        const newStatus = document.getElementById('quickStatusUpdate').value;
-        const previousText = updateBtn.textContent;
-        updateBtn.textContent = 'Updating...';
-        updateBtn.disabled = true;
+        const newStatus = modalStatusSelect.value;
+        const previousText = confirmStatusBtn.textContent;
+        confirmStatusBtn.textContent = 'Updating...';
+        confirmStatusBtn.disabled = true;
         try {
             await updateRiskStatus(id, newStatus);
+            document.getElementById('quickStatusUpdate').value = newStatus;
             setStatusMessage('viewRiskMessage', 'Status updated successfully.', 'success');
             const statusEl = document.getElementById('riskStatus');
             statusEl.textContent = newStatus;
             statusEl.className = `badge badge-${newStatus.toLowerCase() === 'resolved' ? 'success' : 'medium'}`;
+            await renderRiskHistory(id, historyLoader, historyTimeline);
+            document.getElementById('historySection').style.display = 'block';
+            updateBtn.disabled = false;
+            closeStatusModal();
         } catch (err) {
             setStatusMessage('viewRiskMessage', err.message || 'Failed to update status.', 'error');
         } finally {
-            updateBtn.textContent = previousText;
-            updateBtn.disabled = false;
+            confirmStatusBtn.textContent = previousText;
+            confirmStatusBtn.disabled = false;
+        }
+    });
+
+    closeStatusModalBtn.addEventListener('click', closeStatusModal);
+    cancelStatusModalBtn.addEventListener('click', closeStatusModal);
+    statusModalBackdrop.addEventListener('click', closeStatusModal);
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !statusModal.hidden) {
+            closeStatusModal();
         }
     });
 }
