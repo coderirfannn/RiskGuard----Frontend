@@ -67,6 +67,33 @@ async function renderRiskHistory(riskId, loader, timeline) {
     }
 }
 
+async function fetchRiskById(id, projectId) {
+    try {
+        return await fetchAPI(`/risks/${id}`);
+    } catch (err) {
+        if (!projectId) {
+            throw err;
+        }
+    }
+
+    try {
+        return await fetchAPI(`/projects/${projectId}/risks/${id}`);
+    } catch (err) {
+        // Fall through to list-based lookup when direct project risk route is unavailable.
+    }
+
+    const projectRisks = await fetchAPI(`/projects/${projectId}/risks`);
+    const matchedRisk = Array.isArray(projectRisks)
+        ? projectRisks.find((risk) => String(risk?._id || risk?.id) === String(id))
+        : null;
+
+    if (!matchedRisk) {
+        throw new Error('Risk not found');
+    }
+
+    return matchedRisk;
+}
+
 async function updateRiskStatus(id, status) {
     const note = sanitizeText(document.getElementById('modalStatusNote')?.value || '');
     return fetchAPI(`/risks/${id}/status`, {
@@ -178,13 +205,13 @@ async function initViewRisk() {
     }
 
     try {
-        const risk = await fetchAPI(`/risks/${id}`);
+        const risk = await fetchRiskById(id, projectIdParam);
         const projectId = projectIdParam || projectIdFromRisk(risk);
 
         document.getElementById('editBtn').href = `update-risk.html?id=${id}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`;
         document.getElementById('historyBtn').href = `history.html?id=${id}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ''}`;
         document.getElementById('riskTitle').textContent = risk.title;
-        document.getElementById('riskId').textContent = `ID: ${risk._id}`;
+        document.getElementById('riskId').textContent = `ID: ${risk._id || risk.id || id}`;
         document.getElementById('riskDesc').textContent = risk.description || 'No description provided.';
         document.getElementById('riskMitigation').textContent = risk.mitigationActions || risk.mitigationPlan || 'No mitigation actions provided.';
 
@@ -289,7 +316,7 @@ async function initUpdateForm() {
     const loader = document.getElementById('loader');
 
     try {
-        const risk = await fetchAPI(`/risks/${id}`);
+        const risk = await fetchRiskById(id, getUrlParam('projectId'));
         document.getElementById('title').value = risk.title;
         document.getElementById('description').value = risk.description || '';
         document.getElementById('probability').value = risk.probability;
