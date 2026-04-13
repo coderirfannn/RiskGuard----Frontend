@@ -1,6 +1,7 @@
 /* LAYOUT CSS */
 .container {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 28px;
 }
@@ -138,7 +139,7 @@
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 18px;
 }
 
@@ -175,6 +176,12 @@
     overflow-x: auto;
     gap: 8px;
     padding-bottom: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar ul::-webkit-scrollbar {
+    display: none;
   }
 
   .sidebar li {
@@ -205,3 +212,17 @@
   }
 }
 
+@media (max-width: 576px) {
+  .main-content > .container,
+  .main-content > div:not(.header):not(.modal-backdrop):not(.modal) {
+    padding: 12px 10px;
+  }
+
+  .header {
+    padding: 12px 10px;
+  }
+  
+  .auth-wrapper {
+    padding: 16px;
+  }
+}
