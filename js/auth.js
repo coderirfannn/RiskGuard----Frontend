@@ -55,7 +55,7 @@ function loadSidebar() {
                 <li><a href="projects.html" ${isPageActive('projects.html')}>Projects</a></li>
                 <li><a href="create-project.html" ${isPageActive('create-project.html')}>Create Project</a></li>
                 <li><a href="risks.html" ${isPageActive('risks.html')}>Risk Register</a></li>
-                <li><a href="#" ${isPageActive('reports.html')}>Reports</a></li>
+                <li><a href="reports.html" ${isPageActive('reports.html')}>Reports</a></li>
             </ul>
 
             <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-top: 24px; margin-bottom: 10px; padding-left: 12px;">SYSTEM</div>
