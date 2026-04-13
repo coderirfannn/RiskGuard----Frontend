@@ -112,7 +112,7 @@
                             <input type="email" id="profileEmail" class="form-control" value="thakuraniket47034@gmail.com" style="background:rgba(255,255,255,0.03);" />
                         </div>
                     </div>
-                    <button class="btn" style="background: var(--card-hover); color: var(--text-color); border: 1px solid var(--border-color); width: auto; margin-top:10px;">Save Changes</button>
+                    <button id="saveProfileBtn" class="btn" style="background: var(--card-hover); color: var(--text-color); border: 1px solid var(--border-color); width: auto; margin-top:10px;">Save Changes</button>
                 </div>
 
                 <!-- Appearance Block -->
@@ -138,7 +138,7 @@
                             <h4>Email notifications for critical risks</h4>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" id="emailNotifToggle" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -147,7 +147,7 @@
                             <h4>Weekly risk summary reports</h4>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" id="weeklyReportToggle" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -156,7 +156,7 @@
                             <h4>Project status change alerts</h4>
                         </div>
                         <label class="switch">
-                            <input type="checkbox">
+                            <input type="checkbox" id="projectAlertToggle">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -165,6 +165,8 @@
         </div>
     </div>
     <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
     <script src="../js/theme.js"></script>
+    <script src="../js/settings.js"></script>
 </body>
 </html>
