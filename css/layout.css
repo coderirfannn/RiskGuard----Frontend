@@ -21,7 +21,9 @@
 
 .sidebar {
   width: 276px;
-  background: linear-gradient(180deg, rgba(42, 42, 59, 0.8), rgba(30, 30, 47, 0.86));
+  background: rgba(10, 11, 20, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid var(--border-color);
   padding: 24px 18px;
   display: flex;
@@ -30,6 +32,7 @@
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  box-shadow: 1px 0 24px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar h2 {
@@ -39,19 +42,9 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
-.sidebar h2::before {
-  content: "";
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.18);
-}
+
 
 .sidebar ul {
   list-style: none;
@@ -79,8 +72,9 @@
 
 .sidebar a:hover,
 .sidebar button.logout-link:hover {
-  background: rgba(74, 144, 226, 0.14);
+  background: var(--primary-glow);
   color: var(--text-color);
+  transform: translateX(4px);
 }
 
 .main-content {
@@ -102,9 +96,9 @@
   align-items: center;
   padding: 18px 28px;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(16, 18, 30, 0.86);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(10, 11, 20, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -166,7 +160,9 @@
     padding: 14px;
     height: auto;
     position: static;
-    background: rgba(24, 27, 42, 0.92);
+    background: rgba(10, 11, 20, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .sidebar ul {

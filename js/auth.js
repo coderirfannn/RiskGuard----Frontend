@@ -41,10 +41,13 @@ function loadSidebar() {
 
     sidebarContainer.innerHTML = `
         <div class="sidebar">
-            <h2 style="font-size: 1.1rem; margin-bottom: 2rem;">
-                <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background: rgba(74,144,226,0.15); color: var(--primary-color); border-radius: 8px; margin-right: 10px;">🛡️</span>
-                RiskMonitorX <br><span style="font-size:0.7rem; font-weight:normal; color:var(--text-muted); padding-left: 38px; display:block; margin-top:-4px;">Risk Management Platform</span>
-            </h2>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:2rem;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; background: var(--primary-glow); color: var(--white); border-radius: 8px; font-size:1.1rem;">🛡️</span>
+                <div>
+                    <h2 style="margin:0; font-size:1.15rem; display:block;">RiskMonitorX</h2>
+                    <span style="font-size:0.75rem; font-weight:normal; color:var(--text-soft); display:block; margin-top:2px;">Risk Management Platform</span>
+                </div>
+            </div>
             
             <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 10px; padding-left: 12px;">MAIN MENU</div>
             <ul style="flex: none;">
