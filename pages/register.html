@@ -34,6 +34,7 @@
         </div>
     </div>
     <script src="../js/auth.js"></script>
+    <script src="../js/theme.js"></script>
     <script src="../js/api.js"></script>
     <script>
         requireGuest();
@@ -63,7 +64,7 @@
                 } else {
                     sessionStorage.setItem('token', data.token);
                 }
-                window.location.href = 'dashboard.html';
+                window.location.href = 'projects.html';
             } catch (err) {
                 messageEl.className = 'status-message error';
                 messageEl.textContent = err.message || 'Registration failed. Please try again.';
@@ -75,3 +76,5 @@
     </script>
 </body>
 </html>
+
+

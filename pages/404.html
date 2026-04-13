@@ -18,8 +18,10 @@
     <script>
         const returnLink = document.getElementById('returnLink');
         const hasToken = !!(sessionStorage.getItem('token') || localStorage.getItem('token'));
-        returnLink.href = hasToken ? 'dashboard.html' : 'login.html';
+        returnLink.href = hasToken ? 'projects.html' : 'login.html';
         returnLink.textContent = hasToken ? 'Return to Dashboard' : 'Go to Login';
     </script>
 </body>
 </html>
+
+

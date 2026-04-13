@@ -12,22 +12,38 @@
     <div class="app-layout">
         <div id="sidebar-container"></div>
         <div class="main-content">
+            
             <div class="header">
-                <div class="project-hero__meta">
-                    <div class="breadcrumb"><a href="dashboard.html">Projects</a> / <a id="projectLink" href="#">Project</a> / Risk Detail</div>
-                    <h1 id="riskTitle" style="margin-bottom: 5px;">Loading...</h1>
-                    <span id="riskId" style="color:var(--text-color); opacity: 0.6; font-size:14px;"></span>
+                <div>
+                    <h1>RiskGuard</h1>
                 </div>
-                <div class="card-inline-actions" style="margin-top: 0; gap:10px;">
-                    <a id="historyBtn" href="#" class="btn" style="background:#e2e8f0; color:#0f172a; width:auto;">View History Page</a>
-                    <a id="editBtn" href="#" class="btn btn-primary" style="width: auto">Edit Risk</a>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="position: relative; color: var(--text-muted); cursor: pointer;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <div style="position: relative; color: var(--text-muted); cursor: pointer;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span style="position: absolute; top: 0px; right: 0px; background: var(--danger); width: 8px; height: 8px; border-radius: 50%;"></span>
+                    </div>
+                    <div style="background: var(--primary-color); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">
+                        AS
+                    </div>
+
+                    <div style="margin-left:10px;"><a href="projects.html">Projects</a> / <a id="projectLink" href="#">Project</a> / Risk Detail</div>
+                    <h1 id="riskTitle" class="title-tight-sm">Loading...</h1>
+                    <span id="riskId" class="meta-subtext"></span>
+                </div>
+                <div class="card-inline-actions card-inline-actions-no-top">
+                    <a id="historyBtn" href="#" class="btn btn-auto">View History Page</a>
+                    <a id="editBtn" href="#" class="btn btn-primary btn-auto">Edit Risk</a></div>
                 </div>
             </div>
+
             
             <div id="loader" role="status" aria-live="polite">Loading Details...</div>
             <div id="viewRiskMessage" class="status-message" role="alert" aria-live="polite"></div>
             
-            <div class="grid risk-details-grid" id="detailsWrapper" style="display:none;">
+            <div class="grid risk-details-grid block-hidden" id="detailsWrapper">
                 <div>
                     <div class="card">
                         <h3>Description</h3>
@@ -41,7 +57,7 @@
                 <div>
                     <div class="card">
                         <h3>Risk Parameters</h3>
-                        <ul style="list-style:none; padding:0; margin:0; line-height:2.5;">
+                        <ul class="list-plain">
                             <li><strong>Status:</strong> <span id="riskStatus" class="badge"></span></li>
                             <li><strong>Probability:</strong> <span id="riskProb"></span></li>
                             <li><strong>Impact:</strong> <span id="riskImpact" class="badge"></span></li>
@@ -49,9 +65,9 @@
                             <li><strong>Created:</strong> <span id="riskDate"></span></li>
                         </ul>
                         
-                        <hr style="border:0; border-top:1px solid var(--border-color); margin: 20px 0;">
+                        <hr class="separator">
                         <h4>Quick Status Update</h4>
-                        <select id="quickStatusUpdate" class="form-control" style="margin-bottom:10px;">
+                        <select id="quickStatusUpdate" class="form-control control-spaced">
                             <option value="Open">Open</option>
                             <option value="Monitoring">Monitoring</option>
                             <option value="Mitigated">Mitigated</option>
@@ -62,18 +78,18 @@
                 </div>
             </div>
 
-            <div class="card" id="historySection" style="display:none; margin-top: 20px;">
-                <div class="header" style="margin-bottom:20px; padding-bottom:0; border-bottom:0;">
-                    <h2 style="margin:0;">Full History Timeline</h2>
+            <div class="card section-card" id="historySection">
+                <div class="header header-compact">
+                    <h2 class="title-none">Full History Timeline</h2>
                 </div>
                 <div id="historyLoader" role="status" aria-live="polite">Loading History...</div>
-                <div class="timeline" id="riskHistoryTimeline" style="display:none;"></div>
+                <div class="timeline block-hidden" id="riskHistoryTimeline"></div>
             </div>
 
             <div class="modal-backdrop" id="statusModalBackdrop" hidden></div>
             <div class="modal" id="statusModal" aria-hidden="true" hidden>
                 <div class="modal__header">
-                    <h3 style="margin:0;">Update Risk Status</h3>
+                    <h3 class="title-none">Update Risk Status</h3>
                     <button type="button" class="modal__close" id="closeStatusModalBtn" aria-label="Close status modal">&times;</button>
                 </div>
                 <div class="form-group">
@@ -89,14 +105,15 @@
                     <label for="modalStatusNote">Status Note</label>
                     <textarea id="modalStatusNote" class="form-control" rows="3" placeholder="Add context for this status update"></textarea>
                 </div>
-                <div class="card-inline-actions" style="margin-top:20px;">
+                <div class="card-inline-actions">
                     <button type="button" class="btn btn-primary" id="confirmStatusBtn">Update Status</button>
-                    <button type="button" class="btn" id="cancelStatusModalBtn" style="background:#e2e8f0; color:#0f172a;">Cancel</button>
+                    <button type="button" class="btn" id="cancelStatusModalBtn">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
     <script src="../js/auth.js"></script>
+    <script src="../js/theme.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/risks.js"></script>
     <script>
@@ -108,3 +125,4 @@
     </script>
 </body>
 </html>
+

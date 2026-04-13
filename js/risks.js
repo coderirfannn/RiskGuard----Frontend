@@ -132,7 +132,7 @@ function initCreateForm() {
 
     if (!projectId) {
         setStatusMessage('createFormMessage', 'Create a project first, then open it to add risks.', 'error');
-        window.location.href = 'dashboard.html';
+        window.location.href = 'projects.html';
         return;
     }
 
@@ -501,3 +501,4 @@ async function loadAllRisks() {
         loader.style.display = 'none';
     }
 }
+

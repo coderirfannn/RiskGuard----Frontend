@@ -14,17 +14,17 @@
         <div class="main-content">
             <div class="header">
                 <div>
-                    <div class="breadcrumb"><a href="dashboard.html">Projects</a> / <a id="projectLink" href="dashboard.html">Loading project...</a> / Create Risk</div>
-                    <h1 style="margin:0;">Create New Risk</h1>
+                    <div class="breadcrumb"><a href="projects.html">Projects</a> / <a id="projectLink" href="projects.html">Loading project...</a> / Create Risk</div>
+                    <h1 class="title-none">Create New Risk</h1>
                 </div>
             </div>
             
-            <div class="card" style="max-width: 800px; margin-bottom: 20px;">
-                <h3 id="projectName" style="margin-top:0; margin-bottom:8px;">Loading project...</h3>
-                <p id="projectContext" style="margin:0; color:var(--text-muted);">Risks can only be created inside a project.</p>
+            <div class="card card-constrained-spaced">
+                <h3 id="projectName" class="title-top-none">Loading project...</h3>
+                <p id="projectContext" class="title-none text-muted">Risks can only be created inside a project.</p>
             </div>
 
-            <div class="card" style="max-width: 800px;">
+            <div class="card card-constrained">
                 <form id="createRiskForm">
                     <div class="form-group">
                         <label for="title">Risk Title</label>
@@ -73,6 +73,7 @@
         </div>
     </div>
     <script src="../js/auth.js"></script>
+    <script src="../js/theme.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/risks.js"></script>
     <script>
@@ -84,3 +85,5 @@
     </script>
 </body>
 </html>
+
+

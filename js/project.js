@@ -79,7 +79,7 @@ function renderProjectRisk(risk, projectId) {
             <td>
                 <div class="card-inline-actions" style="margin-top:0; gap:8px;">
                     <a href="view-risk.html?id=${riskId}&projectId=${riskProjectId}" class="btn btn-primary" style="width:auto;">View</a>
-                    <a href="update-risk.html?id=${riskId}&projectId=${riskProjectId}" class="btn" style="width:auto; background:#e2e8f0; color:#0f172a;">Edit</a>
+                    <a href="update-risk.html?id=${riskId}&projectId=${riskProjectId}" class="btn" style="width:auto;">Edit</a>
                 </div>
             </td>
         </tr>
@@ -122,7 +122,7 @@ async function initCreateProjectForm() {
                 body: JSON.stringify(payload)
             });
             const createdId = createdProject && (createdProject._id || createdProject.id);
-            window.location.href = createdId ? `project-detail.html?id=${encodeURIComponent(createdId)}` : 'dashboard.html';
+            window.location.href = createdId ? `project-detail.html?id=${encodeURIComponent(createdId)}` : 'projects.html';
         } catch (err) {
             setStatusMessage('createProjectMessage', err.message || 'Failed to create project.', 'error');
             saveBtn.textContent = previousText;
@@ -166,7 +166,7 @@ async function loadProjectRisks(projectId) {
 
 async function initProjectDetail() {
     const projectId = getUrlParam('id');
-    if (!projectId) return window.location.href = 'dashboard.html';
+    if (!projectId) return window.location.href = 'projects.html';
 
     const loader = document.getElementById('loader');
     const createRiskBtn = document.getElementById('createRiskBtn');
