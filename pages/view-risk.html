@@ -12,68 +12,54 @@
     <div class="app-layout">
         <div id="sidebar-container"></div>
         <div class="main-content">
-            
-            <div class="header">
-                <div>
-                    <h1>RiskGuard</h1>
+            <div class="header" style="margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">Risk Detail</div>
+                    <div style="margin-left:10px; font-size: 1rem; color: var(--text-muted);">
+                        <a href="projects.html">Projects</a> / <a id="projectLink" href="#">Project</a> / <span style="color: var(--primary-color);">Risk Detail</span>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 20px;">
-                    <div style="position: relative; color: var(--text-muted); cursor: pointer;">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <div style="position: relative; color: var(--text-muted); cursor: pointer;">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <span style="position: absolute; top: 0px; right: 0px; background: var(--danger); width: 8px; height: 8px; border-radius: 50%;"></span>
-                    </div>
-                    <div style="background: var(--primary-color); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">
-                        AS
-                    </div>
-
-                    <div style="margin-left:10px;"><a href="projects.html">Projects</a> / <a id="projectLink" href="#">Project</a> / Risk Detail</div>
-                    <h1 id="riskTitle" class="title-tight-sm">Loading...</h1>
-                    <span id="riskId" class="meta-subtext"></span>
-                </div>
-                <div class="card-inline-actions card-inline-actions-no-top">
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <h1 id="riskTitle" class="title-tight" style="margin: 0; font-size: 2rem;">Loading...</h1>
+                    <span id="riskId" class="meta-subtext" style="font-size: 0.95rem; color: var(--text-soft);"></span>
+                    <a id="editBtn" href="#" class="btn btn-primary btn-auto">Edit Risk</a>
                     <a id="historyBtn" href="#" class="btn btn-auto">View History Page</a>
-                    <a id="editBtn" href="#" class="btn btn-primary btn-auto">Edit Risk</a></div>
                 </div>
             </div>
 
-            
             <div id="loader" role="status" aria-live="polite">Loading Details...</div>
             <div id="viewRiskMessage" class="status-message" role="alert" aria-live="polite"></div>
-            
-            <div class="grid risk-details-grid block-hidden" id="detailsWrapper">
-                <div>
-                    <div class="card">
-                        <h3>Description</h3>
-                        <p id="riskDesc"></p>
+
+            <div class="risk-details-flex block-hidden" id="detailsWrapper" style="display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start;">
+                <div style="flex: 2 1 340px; min-width: 320px;">
+                    <div class="card" style="margin-bottom: 24px;">
+                        <h3 style="margin-bottom: 10px;">Description</h3>
+                        <p id="riskDesc" style="font-size: 1.08rem; color: var(--text-color);"></p>
                     </div>
-                    <div class="card">
-                        <h3>Mitigation Plan</h3>
-                        <p id="riskMitigation"></p>
+                    <div class="card" style="margin-bottom: 24px;">
+                        <h3 style="margin-bottom: 10px;">Mitigation Plan</h3>
+                        <p id="riskMitigation" style="font-size: 1.08rem; color: var(--text-color);"></p>
                     </div>
                 </div>
-                <div>
-                    <div class="card">
-                        <h3>Risk Parameters</h3>
-                        <ul class="list-plain">
-                            <li><strong>Status:</strong> <span id="riskStatus" class="badge"></span></li>
-                            <li><strong>Probability:</strong> <span id="riskProb"></span></li>
-                            <li><strong>Impact:</strong> <span id="riskImpact" class="badge"></span></li>
-                            <li><strong>Creator:</strong> <span id="riskCreator"></span></li>
-                            <li><strong>Created:</strong> <span id="riskDate"></span></li>
+                <div style="flex: 1 1 280px; min-width: 260px;">
+                    <div class="card" style="margin-bottom: 24px;">
+                        <h3 style="margin-bottom: 10px;">Risk Parameters</h3>
+                        <ul class="list-plain" style="font-size: 1rem;">
+                            <li style="margin-bottom: 8px;"><strong>Status:</strong> <span id="riskStatus" class="badge"></span></li>
+                            <li style="margin-bottom: 8px;"><strong>Probability:</strong> <span id="riskProb" class="badge badge-low"></span></li>
+                            <li style="margin-bottom: 8px;"><strong>Impact:</strong> <span id="riskImpact" class="badge badge-low"></span></li>
+                            <li style="margin-bottom: 8px;"><strong>Creator:</strong> <span id="riskCreator"></span></li>
+                            <li style="margin-bottom: 8px;"><strong>Created:</strong> <span id="riskDate"></span></li>
                         </ul>
-                        
                         <hr class="separator">
-                        <h4>Quick Status Update</h4>
-                        <select id="quickStatusUpdate" class="form-control control-spaced">
+                        <h4 style="margin-bottom: 8px;">Quick Status Update</h4>
+                        <select id="quickStatusUpdate" class="form-control control-spaced" style="margin-bottom: 10px;">
                             <option value="Open">Open</option>
                             <option value="Monitoring">Monitoring</option>
                             <option value="Mitigated">Mitigated</option>
                             <option value="Closed">Closed</option>
                         </select>
-                        <button id="updateStatusBtn" class="btn btn-primary">Update Status</button>
+                        <button id="updateStatusBtn" class="btn btn-primary" style="width: 100%;">Update Status</button>
                     </div>
                 </div>
             </div>

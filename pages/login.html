@@ -53,7 +53,7 @@
                         password
                     })
                 });
-                const token = data && data.data && data.data.token;
+                const token = data && data.token;
                 if (typeof setAuthToken === 'function') {
                     setAuthToken(token, false);
                 } else {

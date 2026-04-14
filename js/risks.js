@@ -131,8 +131,8 @@ function initCreateForm() {
     const projectContext = document.getElementById('projectContext');
 
     if (!projectId) {
-        setStatusMessage('createFormMessage', 'Create a project first, then open it to add risks.', 'error');
-        window.location.href = 'projects.html';
+        setStatusMessage('createFormMessage', 'Missing project ID. Please create or select a project first.', 'error');
+        setTimeout(() => { window.location.href = 'projects.html'; }, 2000);
         return;
     }
 
@@ -150,8 +150,15 @@ function initCreateForm() {
             if (projectContext) {
                 projectContext.textContent = project?.description || 'Risks can only be created inside a project.';
             }
+            // Check ownership (frontend check, not a security guarantee)
+            const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+            if (project.owner && user && String(project.owner) !== String(user._id)) {
+                setStatusMessage('createFormMessage', 'You are not the owner of this project. Only the owner can add risks.', 'error');
+                form.querySelectorAll('input, textarea, select, button').forEach(el => el.disabled = true);
+            }
         } catch (err) {
             setStatusMessage('createFormMessage', err.message || 'Unable to load project context.', 'error');
+            form.querySelectorAll('input, textarea, select, button').forEach(el => el.disabled = true);
         }
     })();
     

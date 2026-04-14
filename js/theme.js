@@ -85,7 +85,7 @@ function initGlobalNotifications() {
             <div style="padding: 12px 16px; display: flex; gap: 12px; opacity: 0.7;">
                 <div style="width: 8px; height: 8px; border-radius: 50%; background: transparent; margin-top: 6px; flex-shrink: 0;"></div>
                 <div>
-                    <div style="font-size: 0.9rem; color: var(--text-color); margin-bottom: 4px;">Summary weekly report successfully generated.</div>
+// ...existing code...
                     <div style="font-size: 0.75rem; color: var(--text-muted);">2 hours ago</div>
                 </div>
             </div>

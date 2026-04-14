@@ -1,3 +1,41 @@
+// Minimal loadProjectDetail implementation
+async function loadProjectDetail() {
+    const loader = document.getElementById('loader');
+    const projectId = new URLSearchParams(window.location.search).get('id');
+    if (!projectId) {
+        loader.textContent = 'Project ID not found.';
+        return;
+    }
+    try {
+        loader.style.display = 'block';
+        // Fetch project details
+        const project = await fetchAPI(`/projects/${projectId}`);
+        document.getElementById('breadcrumbProjectName').textContent = project.title || 'Untitled';
+        document.getElementById('projectTitle').textContent = project.title || 'Untitled';
+        document.getElementById('projectDescription').textContent = project.description || '';
+        document.getElementById('projectStartDate').textContent = project.startDate ? new Date(project.startDate).toLocaleDateString() : '-';
+        document.getElementById('projectEndDate').textContent = project.endDate ? new Date(project.endDate).toLocaleDateString() : '-';
+        // Fetch risks for this project
+        const risks = await fetchAPI(`/projects/${projectId}/risks`);
+        document.getElementById('projectRiskCount').textContent = Array.isArray(risks) ? risks.length : 0;
+        // Render risks table
+        const risksGrid = document.getElementById('project-risks-grid');
+        if (Array.isArray(risks) && risks.length > 0) {
+            document.getElementById('project-empty-state').classList.add('block-hidden');
+            document.getElementById('project-risks-wrap').classList.remove('block-hidden');
+            risksGrid.innerHTML = risks.map(risk => renderProjectRisk(risk, projectId)).join('');
+        } else {
+            document.getElementById('project-empty-state').classList.remove('block-hidden');
+            document.getElementById('project-risks-wrap').classList.add('block-hidden');
+            risksGrid.innerHTML = '';
+        }
+        // Show summary
+        document.getElementById('projectSummary').classList.remove('block-hidden');
+        loader.style.display = 'none';
+    } catch (err) {
+        loader.textContent = 'Failed to load project details.';
+    }
+}
 function getUrlParam(param) {
     const params = new URLSearchParams(window.location.search);
     return params.get(param);

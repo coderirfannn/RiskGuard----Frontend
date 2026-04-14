@@ -134,7 +134,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             requireAuth();
             loadSidebar();
-            loadProjectDetail();
+            initProjectDetail();
             const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
             if (user && user._id) {
                 connectNotifications(user._id);

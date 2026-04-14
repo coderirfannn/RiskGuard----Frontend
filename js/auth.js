@@ -31,13 +31,28 @@ function logout() {
     window.location.href = pagePath('login.html');
 }
 
-function loadSidebar() {
+async function loadSidebar() {
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) return;
 
     // Determine current active page
     const currentPath = window.location.pathname;
     const isPageActive = (path) => currentPath.endsWith(path) ? 'style="color: var(--primary-color); background: rgba(74, 144, 226, 0.14);"' : '';
+
+    // Fetch user profile to determine role
+    let userRole = 'user';
+    try {
+        const token = getAuthToken();
+        if (token) {
+            const res = await fetch(`${API_BASE}/auth/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                userRole = data?.data?.role || 'user';
+            }
+        }
+    } catch {}
 
     sidebarContainer.innerHTML = `
         <div class="sidebar">
@@ -53,9 +68,7 @@ function loadSidebar() {
             <ul style="flex: none;">
                 <li><a href="dashboard.html" ${isPageActive('dashboard.html')}>Dashboard</a></li>
                 <li><a href="projects.html" ${isPageActive('projects.html')}>Projects</a></li>
-                <li><a href="create-project.html" ${isPageActive('create-project.html')}>Create Project</a></li>
                 <li><a href="risks.html" ${isPageActive('risks.html')}>Risk Register</a></li>
-                <li><a href="reports.html" ${isPageActive('reports.html')}>Reports</a></li>
             </ul>
 
             <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-top: 24px; margin-bottom: 10px; padding-left: 12px;">SYSTEM</div>
@@ -69,7 +82,7 @@ function loadSidebar() {
                     <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
                 </button>
                 <div style="font-size: 0.8rem; color: var(--text-soft); padding-left: 12px; margin-bottom: 16px;">
-                    Signed in as <strong style="color: var(--text-color);">Admin</strong>
+                    Signed in as <strong style="color: var(--text-color);">${userRole === 'admin' ? 'Admin' : 'User'}</strong>
                 </div>
                 <button class="logout-link" id="logoutBtn" type="button" style="display:flex; align-items:center; gap:10px; padding: 10px 12px; color: var(--text-muted);">
                     <span>🚪</span> Log Out
