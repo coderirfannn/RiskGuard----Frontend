@@ -20,7 +20,8 @@ async function loadDashboardMetrics() {
             risks = Array.isArray(rawRisks) ? rawRisks : [];
         } catch(e) {
             // fallback if /risks is not global
-            const projects = await fetchAPI('/projects');
+                const projectsRaw = await fetchAPI('/projects');
+                const projects = Array.isArray(projectsRaw.data) ? projectsRaw.data : [];
             if (Array.isArray(projects)) {
                 for (let p of projects) {
                     try {

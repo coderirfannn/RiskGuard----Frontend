@@ -285,7 +285,7 @@ async function loadProjectDashboard() {
 
     try {
         const projectsRaw = await fetchAPI('/projects');
-        const projects = await hydrateProjectRiskCounts(projectsRaw);
+        const projects = await hydrateProjectRiskCounts(projectsRaw.data || []);
         const totalProjects = Array.isArray(projects) ? projects.length : 0;
         const totalRisks = Array.isArray(projects)
             ? projects.reduce((sum, project) => sum + (project._computedRiskCount || 0), 0)
