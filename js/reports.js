@@ -50,7 +50,15 @@ async function handleCsvExport() {
 
     try {
         const token = getAuthToken();
-        const response = await fetch(`${API_BASE}/reports/csv`, {
+        // Get date values
+        const startDate = document.getElementById('startDate')?.value;
+        const endDate = document.getElementById('endDate')?.value;
+        let url = `${API_BASE}/reports/csv`;
+        const params = [];
+        if (startDate) params.push(`startDate=${encodeURIComponent(startDate)}`);
+        if (endDate) params.push(`endDate=${encodeURIComponent(endDate)}`);
+        if (params.length > 0) url += `?${params.join('&')}`;
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
