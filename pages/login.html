@@ -53,10 +53,11 @@
                         password
                     })
                 });
+                const token = data && data.data && data.data.token;
                 if (typeof setAuthToken === 'function') {
-                    setAuthToken(data.token, false);
+                    setAuthToken(token, false);
                 } else {
-                    sessionStorage.setItem('token', data.token);
+                    sessionStorage.setItem('token', token);
                 }
                 window.location.href = 'projects.html';
             } catch (err) {
