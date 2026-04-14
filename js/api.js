@@ -1,5 +1,5 @@
 // Replace BASE_URL with your backend host if needed (keep trailing /api).
-const API_BASE = 'https://riskguard-backend-4eh1.onrender.com/api';
+const API_BASE = 'https://riskguard-backend-4eh1.onrender.com/api/v1';
 const API_TIMEOUT_MS = 15000;
 const TOKEN_KEY = 'token';
 
