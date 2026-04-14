@@ -72,7 +72,7 @@ async function handleCsvExport() {
 
         // Stream raw CSV Blob natively from backend
         const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+        const blobUrl = URL.createObjectURL(blob);
         
         // Extract dynamic filename from server
         let filename = `RiskGuard_Master_Report_${new Date().toISOString().split('T')[0]}.csv`;
@@ -86,7 +86,7 @@ async function handleCsvExport() {
         }
         
         const link = document.createElement("a");
-        link.setAttribute("href", url);
+        link.setAttribute("href", blobUrl);
         link.setAttribute("download", filename);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
